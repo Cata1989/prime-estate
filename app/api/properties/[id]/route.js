@@ -1,6 +1,7 @@
 import connectDB from '@/config/database';
 import Property from '@/models/Property';
 import { getSessionUser } from '@/utils/getSessionUser';
+import cloudinary from '@/config/cloudinary';
 
 // GET /api/properties/:id
 export const GET = async (request, { params }) => {
@@ -77,20 +78,39 @@ export const PUT = async (request, { params }) => {
     // Access all values from amenities
     const amenities = formData.getAll('amenities');
 
-    // Get property to update
-    const existingProperty = await Property.findById(id);
-    console.log('existingProperty', existingProperty);
+    const existingImagesJson = formData.get('existingImages') || '[]';
+    const existingImages = JSON.parse(existingImagesJson);
 
+    const newFiles = formData.getAll('images').filter((f) => f && f.name);
+    
+    let uploadedImages = [];
+    if (newFiles.length > 0) {
+      uploadedImages = await Promise.all(
+        newFiles.map(async (file) => {
+          const buf = Buffer.from(await file.arrayBuffer());
+          const base64 = buf.toString('base64');
+          const mime = file.type || 'image/jpeg';
+          const result = await cloudinary.uploader.upload(
+            `data:${mime};base64,${base64}`,
+            { folder: 'propertypulse' }
+          );
+          return result.secure_url;
+        })
+      );
+    }
+
+    const finalImages = [...existingImages, ...uploadedImages];
+    
+    const existingProperty = await Property.findById(id);
+    
     if (!existingProperty) {
       return new Response('Property does not exist', { status: 404 });
     }
 
-    // Verify ownership
     if (existingProperty.owner.toString() !== userId) {
       return new Response('Unauthorized', { status: 401 });
     }
 
-    // Create propertyData object for database
     const propertyData = {
       type: formData.get('type'),
       name: formData.get('name'),
@@ -115,11 +135,15 @@ export const PUT = async (request, { params }) => {
         email: formData.get('seller_info.email'),
         phone: formData.get('seller_info.phone'),
       },
+      images: finalImages,
       owner: userId,
     };
 
-    // Update property in database
-    const updatedProperty = await Property.findByIdAndUpdate(id, propertyData);
+    const updatedProperty = await Property.findByIdAndUpdate(
+      id,
+      propertyData,
+      { new: true }
+    );
 
     return new Response(JSON.stringify(updatedProperty), {
       status: 200,

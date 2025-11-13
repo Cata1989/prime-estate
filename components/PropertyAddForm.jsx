@@ -34,8 +34,6 @@ const PropertyAddForm = () => {
     setMounted(true);
   }, []);
 
-  console.log('fields state:', fields);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -600,7 +598,7 @@ const PropertyAddForm = () => {
             accept='image/*'
             multiple
             onChange={handleImageChange}
-            // required
+            required
           />
         </div>
 

@@ -3,6 +3,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { fetchProperty } from '@/utils/requests';
+import PropertyImages from './PropertyImages';
+import { IoCloseCircleSharp } from "react-icons/io5";
+import Image from 'next/image';
+import { Gallery, Item } from 'react-photoswipe-gallery';
 
 const PropertyEditForm = () => {
   const { id } = useParams();
@@ -33,6 +37,7 @@ const PropertyEditForm = () => {
       email: '',
       phone: '',
     },
+    images: [],
   });
   const [loading, setLoading] = useState(true);
 
@@ -69,7 +74,6 @@ const PropertyEditForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log('name', name);
 
     // Check if nested property
     if (name.includes('.')) {
@@ -115,23 +119,21 @@ const PropertyEditForm = () => {
     }));
   };
 
+  const handleRemoveImage = (idx) => {
+    setFields(f => ({ ...f, images: f.images.filter((_, i) => i !== idx) }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const formData = new FormData(e.target);
 
-      // for (const [key, value] of formData.entries()) {
-      //   console.log('entries', key, value);
-      // }
+      formData.set('existingImages', JSON.stringify(fields.images));
 
-      // for (const key of formData.keys()) {
-      //   console.log('keys', key);
-      // }
-
-      // for (const value of formData.values()) {
-      //   console.log('values', value);
-      // }
+      for (const [key, value] of formData.entries()) {
+        console.log('entries', key, value);
+      }
 
       const res = await fetch(`/api/properties/${id}`, {
         method: 'PUT',
@@ -598,6 +600,100 @@ const PropertyEditForm = () => {
             placeholder='Phone'
             value={fields.seller_info.phone}
             onChange={handleChange}
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-gray-700 font-bold mb-2">
+            Existing Images ({fields.images.length})
+          </label>
+
+          <Gallery>
+            <section>
+              <div className='container mx-auto'>
+                {fields.images.length === 1 ? (
+                  <div className='relative w-24 h-24'>
+                  <Item
+                    original={fields.images[0]}
+                    thumbnail={fields.images[0]}
+                    width='1000'
+                    height='600'
+                  >
+                    {({ ref, open }) => (
+                      <Image
+                        ref={ref}
+                        onClick={open}
+                        src={fields.images[0]}
+                        alt=''
+                        className="w-24 h-24 object-cover rounded"
+                        width={1800}
+                        height={400}
+                        priority={true}
+                      />
+                    )}
+                  </Item>
+                  <button
+                    type="button"
+                    className="absolute top-0 right-0 text-black font-bold p-1"
+                    onClick={() => handleRemoveImage(index)}
+                  >
+                    <IoCloseCircleSharp className='w-[24px] h-[24px]'/>
+                  </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-4 flex-wrap">
+                    {fields.images.map((image, index) => (
+                      <div className='relative w-24 h-24'>
+                        <Item
+                          original={image}
+                          thumbnail={image}
+                          width='1000'
+                          height='600'
+                        >
+                          {({ ref, open }) => (
+                            <Image
+                              ref={ref}
+                              onClick={open}
+                              src={image}
+                              alt=''
+                              className="w-24 h-24 object-cover rounded"
+                              width={0}
+                              height={0}
+                              sizes='100vw'
+                              priority={true}
+                            />
+                          )}
+                        </Item>
+                        <button
+                          type="button"
+                          className="absolute top-0 right-0 text-black font-bold p-1"
+                          onClick={() => handleRemoveImage(index)}
+                        >
+                          <IoCloseCircleSharp className='w-[24px] h-[24px]'/>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          </Gallery>
+        </div>
+
+        <div className="mb-4">
+          <label
+            htmlFor="images"
+            className="block text-gray-700 font-bold mb-2"
+          >
+            Add New Images
+          </label>
+          <input
+            type="file"
+            id="images"
+            name="images"
+            className="border rounded w-full py-2 px-3"
+            accept="image/*"
+            multiple
           />
         </div>
 
