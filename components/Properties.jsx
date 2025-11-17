@@ -3,20 +3,13 @@ import { useState, useEffect } from 'react';
 import PropertyCard from '@/components/PropertyCard';
 import Spinner from '@/components/Spinner';
 import Pagination from '@/components/Pagination';
-import { useSession } from 'next-auth/react';
 
 const Properties = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(3);
+  const [pageSize, setPageSize] = useState(6);
   const [totalItems, setTotalItems] = useState(0);
-  const { data: session } = useSession();
-
-  const isLoggedIn = !!session?.user;
-
-  console.log('properties', properties);
-  console.log('totalItems', totalItems);
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -56,7 +49,7 @@ const Properties = () => {
         ) : (
           <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
             {properties.map((property) => (
-              <PropertyCard key={property._id} property={property} isLoggedIn={isLoggedIn} />
+              <PropertyCard key={property._id} property={property} />
             ))}
           </div>
         )}

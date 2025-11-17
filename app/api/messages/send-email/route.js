@@ -25,7 +25,6 @@ export const POST = async (req) => {
       `
     });
 
-    console.log('emailResponse', emailResponse);
     return new Response(JSON.stringify({ message: 'Message sent successfully', emailResponse }), { status: 200 });
   } catch (error) {
     console.log(error);

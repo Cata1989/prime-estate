@@ -43,14 +43,12 @@ export const POST = async (request) => {
     const { userId } = sessionUser;
 
     const formData = await request.formData();
-    console.log('formData',formData);
 
     // Access all values from amenities and images
     const amenities = formData.getAll('amenities');
     const images = formData
       .getAll('images')
       .filter((image) => image.name !== '');
-      console.log('images',images);
 
     // Create propertyData object for database
     const propertyData = {
@@ -105,9 +103,7 @@ export const POST = async (request) => {
       const uploadedImages = await Promise.all(imageUploadPromises);
       // Add uploaded images to the propertyData object
 
-      console.log('uploadedImages', uploadedImages);
       propertyData.images = uploadedImages;
-      console.log('propertyData', propertyData);
     }
 
     const newProperty = new Property(propertyData);

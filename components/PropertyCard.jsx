@@ -10,7 +10,7 @@ import {
 import { toast } from 'react-toastify';
 
 
-const PropertyCard = ({ property, isLoggedIn }) => {
+const PropertyCard = ({ property }) => {
   const getRateDisplay = () => {
     const { rates } = property;
 
@@ -23,35 +23,6 @@ const PropertyCard = ({ property, isLoggedIn }) => {
     }
   };
 
-    const handleDeleteProperty = async (propertyId) => {
-      const confirmed = window.confirm(
-        'Are you sure you want to delete this property?'
-      );
-  
-      if (!confirmed) return;
-  
-      try {
-        const res = await fetch(`/api/properties/${propertyId}`, {
-          method: 'DELETE',
-        });
-  
-        if (res.status === 200) {
-          // Remove the property from state
-          const updatedProperties = properties.filter(
-            (property) => property._id !== propertyId
-          );
-  
-          setProperties(updatedProperties);
-  
-          toast.success('Property Deleted');
-        } else {
-          toast.error('Failed to delete property');
-        }
-      } catch (error) {
-        console.log(error);
-        toast.error('Failed to delete property');
-      }
-    };
   return (
     <div className='rounded-xl shadow-md relative'>
       <Image
@@ -123,15 +94,6 @@ const PropertyCard = ({ property, isLoggedIn }) => {
           >
             Details
           </Link>
-          {isLoggedIn && (
-            <button
-            onClick={() => handleDeleteProperty(property._id)}
-            className='h-[36px] bg-red-500 text-white px-4 py-2 rounded-lg text-center text-sm hover:bg-red-600'
-            type='button'
-            >
-              Delete
-            </button>
-          )}
         </div>
       </div>
     </div>

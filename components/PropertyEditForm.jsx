@@ -48,7 +48,6 @@ const PropertyEditForm = () => {
     const fetchPropertyData = async () => {
       try {
         const propertyData = await fetchProperty(id);
-        console.log('propertyData', propertyData);
 
         // Check rates for null, if so then make empty string
         if (propertyData && propertyData.rates) {
@@ -131,9 +130,9 @@ const PropertyEditForm = () => {
 
       formData.set('existingImages', JSON.stringify(fields.images));
 
-      for (const [key, value] of formData.entries()) {
-        console.log('entries', key, value);
-      }
+      // for (const [key, value] of formData.entries()) {
+      //   console.log('entries', key, value);
+      // }
 
       const res = await fetch(`/api/properties/${id}`, {
         method: 'PUT',

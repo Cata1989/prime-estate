@@ -23,7 +23,7 @@ export const GET = async () => {
 
     // Get users bookmarks
     const bookmarks = await Property.find({ _id: { $in: user.bookmarks } });
-    console.log('bookmarks', bookmarks);
+
     
     return new Response(JSON.stringify(bookmarks), { status: 200 });
   } catch (error) {
