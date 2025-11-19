@@ -39,8 +39,6 @@ export const DELETE = async (request, { params }) => {
 
     const property = await Property.findById(propertyId);
 
-    console.log('property', property);
-
     if (!property) return new Response('Property Not Found', { status: 404 });
 
     // Verify ownership
