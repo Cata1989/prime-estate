@@ -69,8 +69,6 @@ const PropertyDetails = ({ property }) => {
         </div>
       </div>
 
-      {/* // Seller Information */}
-
       <div className='flex items-center gap-3 bg-white p-6 rounded-lg mt-6 mb-5 shadow-sm border border-slate-100'>
         <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
           {avatarSrc && (
@@ -93,7 +91,7 @@ const PropertyDetails = ({ property }) => {
             {seller.username || property.seller_info?.name || 'Property Agent'}
           </span>
           
-          <div className="flex items-center gap-3 mt-1">
+          <div className="flex flex-col md:flex-row gap-3 mt-3">
             {(seller.email || property.seller_info?.email) && (
               <a
                 href={`mailto:${seller.email || property.seller_info?.email}`}
@@ -101,7 +99,7 @@ const PropertyDetails = ({ property }) => {
                 title="Send Email"
               >
                 <FaEnvelope className="text-s" />
-                <span className="hidden text-[15px] sm:inline">Email: {seller.email} </span>
+                <span className="text-[15px] sm:inline">Email: {seller.email} </span>
               </a>
             )}
             
@@ -112,7 +110,7 @@ const PropertyDetails = ({ property }) => {
                 title="Call Agent"
               >
                 <FaPhone className="text-s" />
-                <span className="hidden text-[15px] sm:inline">Call: {property.seller_info.phone} </span>
+                <span className="text-[15px] sm:inline">Call: {property.seller_info.phone} </span>
               </a>
             )}
           </div>
