@@ -71,6 +71,11 @@ const PropertySchema = new Schema(
         type: String,
       },
     },
+    account_info: {
+      username: { type: String },
+      email: { type: String },
+      image: { type: String },
+    },
     images: [
       {
         type: String,

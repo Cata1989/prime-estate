@@ -1,5 +1,6 @@
 import connectDB from '@/config/database';
 import Property from '@/models/Property';
+import User from '@/models/User';
 import { getSessionUser } from '@/utils/getSessionUser';
 import cloudinary from '@/config/cloudinary';
 
@@ -50,6 +51,10 @@ export const POST = async (request) => {
       .getAll('images')
       .filter((image) => image.name !== '');
 
+    const accountUser = await User.findById(userId)
+    .select('username email image')
+    .lean();
+
     // Create propertyData object for database
     const propertyData = {
       type: formData.get('type'),
@@ -76,6 +81,13 @@ export const POST = async (request) => {
         phone: formData.get('seller_info.phone'),
       },
       owner: userId,
+      account_info: accountUser
+      ? {
+          username: accountUser.username || '',
+          email: accountUser.email || '',
+          image: accountUser.image || '',
+        }
+      : null,
     };
 
     // Upload image(s) to Cloudinary

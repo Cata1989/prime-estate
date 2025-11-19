@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { useGlobalContext } from '@/context/GlobalContext';
 
 const Message = ({ message }) => {

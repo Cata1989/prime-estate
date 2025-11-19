@@ -1,9 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { fetchProperty } from '@/utils/requests';
-import PropertyImages from './PropertyImages';
 import { IoCloseCircleSharp } from "react-icons/io5";
 import Image from 'next/image';
 import { Gallery, Item } from 'react-photoswipe-gallery';

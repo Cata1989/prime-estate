@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import profileDefault from '@/assets/images/profile.png';
 import Spinner from '@/components/Spinner';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const ProfilePage = () => {
   const { data: session } = useSession();

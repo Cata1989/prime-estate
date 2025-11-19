@@ -7,8 +7,6 @@ import {
   FaMoneyBill,
   FaMapMarker,
 } from 'react-icons/fa';
-import { toast } from 'react-toastify';
-
 
 const PropertyCard = ({ property }) => {
   const getRateDisplay = () => {

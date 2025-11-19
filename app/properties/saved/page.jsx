@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import PropertyCard from '@/components/PropertyCard';
 import Spinner from '@/components/Spinner';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const SavedPropertiesPage = () => {
   const [properties, setProperties] = useState([]);
