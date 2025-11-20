@@ -22,6 +22,7 @@ const PropertyContactForm = ({ property }) => {
       message,
       recipient: property.owner,
       property: property._id,
+      recipient_email: property.account_info.email,
     };
 
     try {
