@@ -8,12 +8,12 @@ export const POST = async (req) => {
   try {
     await connectDB();
 
-    const { name, email, phone, message, recipient, property } = await req.json();
+    const { name, email, phone, message, recipient_email, property } = await req.json();
 
     // Send email notification to recipient using the Resend service
     const emailResponse = await resend.emails.send({
       from: 'onboarding@resend.dev',
-      to: email,
+      to: recipient_email,
       subject: `New message about property ${property}`,
       html: `
         <h1>New Message Received</h1>

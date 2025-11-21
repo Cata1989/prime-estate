@@ -17,6 +17,12 @@ export const authOptions = {
       },
     }),
   ],
+  // Add configuration for extended session and strategy
+  session: {
+    strategy: 'jwt', // Use JWT for sessions (you can change to 'database' if you want persistence in MongoDB)
+    maxAge: 7 * 24 * 60 * 60, // 7 days (instead of the default 24 hours) - extend the session to avoid quick logouts
+    updateAge: 24 * 60 * 60, // Renew the token every 24 hours
+  },
   callbacks: {
     // Invoked on successful signin
     async signIn({ profile }) {
@@ -38,6 +44,13 @@ export const authOptions = {
       // 4. Return true to allow sign in
       return true;
     },
+    // Add callback JWT to manage the tokens and avoid the interminent expirations
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
     // Modifies the session object
     async session({ session }) {
       // 1. Get user from database
@@ -48,4 +61,6 @@ export const authOptions = {
       return session;
     },
   },
+  // Add secret param for security
+  secret: process.env.NEXTAUTH_SECRET,
 };
