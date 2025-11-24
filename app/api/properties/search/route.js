@@ -21,6 +21,7 @@ export const GET = async (request) => {
         { 'location.city': locationPattern },
         { 'location.state': locationPattern },
         { 'location.zipcode': locationPattern },
+        { 'account_info.username': locationPattern },
       ],
     };
 

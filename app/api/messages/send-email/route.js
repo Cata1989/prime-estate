@@ -1,33 +1,35 @@
-import { Resend } from 'resend';
+import sgMail from '@sendgrid/mail';
 import connectDB from '@/config/database';
-import Message from '@/models/Message';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 export const POST = async (req) => {
   try {
     await connectDB();
 
-    const { name, email, phone, message, recipient_email, property } = await req.json();
+    const { owner_email, owner_property_name, owner_name, name, email, phone, message } = await req.json();
 
-    // Send email notification to recipient using the Resend service
-    const emailResponse = await resend.emails.send({
-      from: 'onboarding@resend.dev',
-      to: recipient_email,
-      subject: `New message about property ${property}`,
-      html: `
-        <h1>New Message Received</h1>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone}</p>
-        <p><strong>Message:</strong> ${message}</p>
-        <p>Please log in to the platform to reply.</p>
-      `
-    });
+    const msg = {
+      to: owner_email,
+      from: 'lungancatalin@gmail.com',
+      template_id: 'd-29c22056b12a4838bf62efa6288dd94a',
+      dynamic_template_data: {
+        subject: `Someone is interested in your ${owner_property_name}`,
+        owner_name: owner_name,
+        owner_property_name: owner_property_name,
+        owner_email: owner_email,
+        name: name,
+        email: email,
+        phone: phone,
+        message: message,
+      },
+    };
 
-    return new Response(JSON.stringify({ message: 'Message sent successfully', emailResponse }), { status: 200 });
+    await sgMail.send(msg);
+
+    return new Response(JSON.stringify({ message: 'Message sent successfully' }), { status: 200 });
   } catch (error) {
-    console.log(error);
+    console.log('SendGrid error:', error.response.body.errors);
     return new Response(JSON.stringify({ error: 'Failed to send message' }), { status: 500 });
   }
-}
+};

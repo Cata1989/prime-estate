@@ -16,13 +16,15 @@ const PropertyContactForm = ({ property }) => {
     e.preventDefault();
 
     const data = {
+      owner_name: property.account_info.username,
+      owner_property_name: property.name,
+      owner_email: property.account_info.email,
       name,
       email,
       phone,
       message,
       recipient: property.owner,
       property: property._id,
-      recipient_email: property.account_info.email,
     };
 
     try {
