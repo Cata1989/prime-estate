@@ -62,6 +62,7 @@ const PropertyContactForm = ({ property }) => {
         console.log('Email notification sent successfully');
       } else {
         const emailError = await resEmail.json();
+        console.log('emailError', emailError);
         toast.error(emailError.message || 'Error sending email');
       }
     } catch (error) {
