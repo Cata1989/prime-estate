@@ -46,19 +46,55 @@ export const authOptions = {
     },
     // Add callback JWT to manage the tokens and avoid the interminent expirations
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
+      try {
+        await connectDB();
+        const dbUser = await User.findOne({ email: user?.email ?? token?.email });
+        if (dbUser) {
+          token.userId = dbUser._id.toString();
+  
+          // Only on initial sign-in (when `user` is present), create a new session log
+          if (user && !token.sessionLogId) {
+            const SessionLog = (await import('@/models/SessionLog')).default;
+            const created = await SessionLog.create({
+              user: dbUser._id,           
+              loginAt: new Date(),
+            });
+            token.sessionLogId = created._id.toString();
+          }
+        }
+      } catch (err) {
+        console.log('JWT dbUser lookup error:', err.message);
       }
       return token;
     },
-    // Modifies the session object
-    async session({ session }) {
-      // 1. Get user from database
-      const user = await User.findOne({ email: session.user.email });
-      // 2. Assign the user id to the session
-      session.user.id = user._id.toString();
-      // 3. return session
+    async session({ session, token }) {
+      if (token?.userId) session.user.id = token.userId;
+      if (token?.sessionLogId) session.sessionLogId = token.sessionLogId;
       return session;
+    },
+  },
+  events: {
+    async signOut({ token, session }) {
+      try {
+        await connectDB();
+        const SessionLog = (await import('@/models/SessionLog')).default;
+        const userId = token?.userId || session?.user?.id;
+        if (!userId) return;
+  
+        // Close the latest open session
+        const log = await SessionLog.findOne({
+          user: userId,
+          logoutAt: { $exists: false },
+        }).sort({ loginAt: -1 });
+  
+        if (log) {
+          log.logoutAt = new Date();
+          log.durationSeconds = Math.round((log.logoutAt - log.loginAt) / 1000);
+          await log.save();
+        }
+      } catch (err) {
+        console.log('SessionLog signOut error:', err.message);
+      }
     },
   },
   // Add secret param for security

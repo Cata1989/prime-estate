@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -27,6 +27,11 @@ const Navbar = () => {
 
     setAuthProviders();
   }, []);
+
+  const handleLogout = useCallback(async () => {
+    setIsProfileMenuOpen(false);
+    await signOut({ redirect: true, callbackUrl: '/' });
+  }, [signOut]);
 
   return (
     <nav className='bg-blue-500 border-b border-blue-500'>
@@ -207,10 +212,7 @@ const Navbar = () => {
                       Saved Properties
                     </Link>
                     <button
-                      onClick={() => {
-                        setIsProfileMenuOpen(false);
-                        signOut();
-                      }}
+                      onClick={handleLogout}
                       className='block px-4 py-2 text-sm text-gray-700'
                       role='menuitem'
                       tabIndex='-1'

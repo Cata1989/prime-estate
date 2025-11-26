@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import SessionHistory from '@/components/SessionHistory';
 
 const ProfilePage = () => {
   const { data: session } = useSession();
@@ -101,6 +102,7 @@ const ProfilePage = () => {
               <h2 className='text-2xl'>
                 <span className='font-bold block'>Email: </span> {profileEmail}
               </h2>
+              <SessionHistory />
             </div>
 
             <div className='md:w-3/4 md:pl-4'>
