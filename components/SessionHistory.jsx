@@ -1,18 +1,32 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 
 export default function SessionHistory() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const [logs, setLogs] = useState([]);
+  const sentRef = useRef(false);
 
   useEffect(() => {
-    if (!session?.user?.id) return;
-    fetch(`/api/users/${session.user.id}/session-logs`)
-      .then(r => r.json())
-      .then(data => Array.isArray(data) ? setLogs(data) : setLogs([]))
-      .catch(() => setLogs([]));
-  }, [session?.user?.id]);
+    let aborted = false;
+    const run = async () => {
+        if (!session?.user?.id) return;
+
+        if (!sentRef.current) {
+            const ua = navigator.userAgent;
+            await update({ customUA: ua });
+            sentRef.current = true;
+        }
+
+        const res = await fetch(`/api/users/${session.user.id}/session-logs`, { cache: 'no-store' });
+        const data = await res.json();
+        if (!aborted) setLogs(Array.isArray(data) ? data : []);
+    };
+    run();
+    return () => {
+      aborted = true;
+    }
+  }, [session?.user?.id, session?.customUA, update]);
 
   const handleLogout = useCallback(async () => {
     await signOut({ redirect: true, callbackUrl: '/' });
@@ -27,6 +41,7 @@ export default function SessionHistory() {
             <th className="p-2 text-left">Login</th>
             <th className="p-2 text-left">Logout</th>
             <th className="p-2 text-left">Duration</th>
+            <th className="p-2 text-left">Browser</th>
           </tr>
         </thead>
         <tbody>
@@ -41,6 +56,7 @@ export default function SessionHistory() {
                 <td className="p-2">{new Date(l.loginAt).toLocaleString()}</td>
                 <td className="p-2">{l.logoutAt ? new Date(l.logoutAt).toLocaleString() : 'Active'}</td>
                 <td className="p-2">{dur}</td>
+                <td className="p-2">{l.browser}</td>
               </tr>
             );
           })}

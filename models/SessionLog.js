@@ -6,6 +6,8 @@ const SessionLogSchema = new mongoose.Schema(
         loginAt: { type: Date, required: true },
         logoutAt: { type: Date },
         durationSeconds: { type: Number },
+        userAgent: { type: String },
+        browser: { type: String },
     },
     { timestamps: true }
 );

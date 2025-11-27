@@ -3,6 +3,14 @@ import User from '@/models/User';
 
 import GoogleProvider from 'next-auth/providers/google';
 
+export const detectBrowser = (ua = '') => {
+  if (/Edg\//i.test(ua)) return 'Edge';
+  if (/Chrome\//i.test(ua) && !/Edg\//i.test(ua)) return 'Chrome';
+  if (/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) return 'Safari';
+  if (/Firefox\//i.test(ua)) return 'Firefox';
+  return 'Unknown';
+}
+
 export const authOptions = {
   providers: [
     GoogleProvider({
@@ -45,12 +53,24 @@ export const authOptions = {
       return true;
     },
     // Add callback JWT to manage the tokens and avoid the interminent expirations
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       try {
         await connectDB();
         const dbUser = await User.findOne({ email: user?.email ?? token?.email });
         if (dbUser) {
           token.userId = dbUser._id.toString();
+
+          if (trigger === 'update' && session?.customUA && session.customUA !== token.customUA) {
+            token.customUA = session.customUA;
+
+            if (token.sessionLogId) {
+              const SessionLog = (await import('@/models/SessionLog')).default;
+              await SessionLog.findByIdAndUpdate(token.sessionLogId, {
+                userAgent: token.customUA,
+                browser: detectBrowser(token.customUA),
+              });
+            }
+          }
   
           // Only on initial sign-in (when `user` is present), create a new session log
           if (user && !token.sessionLogId) {
@@ -58,6 +78,8 @@ export const authOptions = {
             const created = await SessionLog.create({
               user: dbUser._id,           
               loginAt: new Date(),
+              userAgent: token.customUA || 'Unknown',
+              browser: detectBrowser(token.customUA || ''),
             });
             token.sessionLogId = created._id.toString();
           }
@@ -70,6 +92,7 @@ export const authOptions = {
     async session({ session, token }) {
       if (token?.userId) session.user.id = token.userId;
       if (token?.sessionLogId) session.sessionLogId = token.sessionLogId;
+      if (token?.customUA) session.customUA = token.customUA;
       return session;
     },
   },
