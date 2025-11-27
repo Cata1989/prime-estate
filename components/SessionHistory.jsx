@@ -1,6 +1,15 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
+import {
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+  } from "@/components/ui/table"
 
 export default function SessionHistory() {
   const { data: session, update } = useSession();
@@ -34,39 +43,51 @@ export default function SessionHistory() {
 
   return (
     <div className="mt-8">
-      <h2 className="text-lg font-semibold mb-3">Login Sessions</h2>
-      <table className="w-full text-sm border border-gray-200 rounded">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2 text-left">Login</th>
-            <th className="p-2 text-left">Logout</th>
-            <th className="p-2 text-left">Duration</th>
-            <th className="p-2 text-left">Browser</th>
-          </tr>
-        </thead>
-        <tbody>
-          {logs.map(l => {
+      <Table>
+        <TableCaption>A list of your recent login sessions.</TableCaption>
+        <TableHeader>
+            <TableRow>
+            <TableHead className="w-[100px]">Login</TableHead>
+            <TableHead>Logout</TableHead>
+            <TableHead>Duration</TableHead>
+            <TableHead className="text-right">Browser</TableHead>
+            </TableRow>
+        </TableHeader>
+        <TableBody>
+            {logs.map((l) => {
             const dur = l.durationSeconds
-              ? `${Math.floor(l.durationSeconds / 60)}m ${l.durationSeconds % 60}s`
-              : l.logoutAt
-              ? '0s'
-              : 'Active';
+                ? `${Math.floor(l.durationSeconds / 60)}m ${l.durationSeconds % 60}s`
+                : l.logoutAt
+                ? '0s'
+                : 'Active';
+
             return (
-              <tr key={l._id} className="border-t">
-                <td className="p-2">{new Date(l.loginAt).toLocaleString()}</td>
-                <td className="p-2">{l.logoutAt ? new Date(l.logoutAt).toLocaleString() : 'Active'}</td>
-                <td className="p-2">{dur}</td>
-                <td className="p-2">{l.browser}</td>
-              </tr>
+                <TableRow key={l._id}>
+                    <TableCell className="p-2">
+                        {new Date(l.loginAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="p-2">
+                        {l.logoutAt ? new Date(l.logoutAt).toLocaleString() : 'Active'}
+                    </TableCell>
+                    <TableCell className="p-2">
+                        {dur}
+                    </TableCell>
+                    <TableCell className="p-2">
+                        {l.browser}
+                    </TableCell>
+                </TableRow>
             );
-          })}
-          {!logs.length && (
-            <tr>
-              <td colSpan={3} className="p-2 text-gray-500">No sessions recorded.</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            })}
+
+            {!logs.length && (
+            <TableRow>
+                <TableCell colSpan={4} className="p-2 text-gray-500">
+                    No sessions recorded.
+                </TableCell>
+            </TableRow>
+            )}
+        </TableBody>
+      </Table>
       <button
         onClick={handleLogout}
         className="mt-4 px-3 py-2 bg-blue-600 text-white rounded text-sm"
