@@ -66,6 +66,13 @@ export default function ChatRoom({ conversationId }) {
     inputRef.current.value = '';
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  } 
+
   return (
     <div className="flex flex-col gap-3">
       <div className="border rounded p-3 h-80 overflow-y-auto bg-white">
@@ -82,6 +89,7 @@ export default function ChatRoom({ conversationId }) {
       <div className="flex gap-2">
         <input
           ref={inputRef}
+          onKeyDown={handleKeyDown}
           className="border rounded px-2 py-1 flex-1"
           placeholder="Scrie un mesaj..."
         />
