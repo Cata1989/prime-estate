@@ -76,7 +76,8 @@ export const authOptions = {
           if (user && !token.sessionLogId) {
             const SessionLog = (await import('@/models/SessionLog')).default;
             const created = await SessionLog.create({
-              user: dbUser._id,           
+              user: dbUser._id,   
+              username: dbUser.username,        
               loginAt: new Date(),
               userAgent: token.customUA || 'Unknown',
               browser: detectBrowser(token.customUA || ''),

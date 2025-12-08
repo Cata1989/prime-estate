@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const SessionLogSchema = new mongoose.Schema(
     {
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+        username: { type: String, required: true },
         loginAt: { type: Date, required: true },
         logoutAt: { type: Date },
         durationSeconds: { type: Number },

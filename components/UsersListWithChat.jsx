@@ -12,13 +12,13 @@ export default function UsersListWithChat({ currentUserId }) {
 
     (async () => {
       try {
-        const res = await fetch('/api/users/list', { cache: 'no-store' });
+        const res = await fetch('/api/users/with-status', { cache: 'no-store' });
         const data = await res.json();
         if (!aborted && Array.isArray(data)) {
           setUsers(data);
         }
       } catch (e) {
-        console.error('Error fetching users list', e);
+        console.error('Error fetching users with status', e);
       } finally {
         if (!aborted) setLoading(false);
       }
@@ -29,7 +29,7 @@ export default function UsersListWithChat({ currentUserId }) {
     };
   }, []);
 
-  if (loading) return <div>Se încarcă utilizatorii...</div>;
+  if (loading) return <div>Loading users...</div>;
 
   return (
     <div className="space-y-3">
@@ -40,9 +40,21 @@ export default function UsersListWithChat({ currentUserId }) {
             key={u._id}
             className="flex items-center justify-between border rounded px-3 py-2 bg-white"
           >
-            <div>
-              <div className="font-medium">{u.username || u.email}</div>
-              <div className="text-xs text-gray-500">{u.email}</div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-block h-3 w-3 rounded-full ${
+                  u.online ? 'bg-green-500' : 'bg-gray-400'
+                }`}
+                title={u.online ? 'Online' : 'Offline'}
+              />
+              <div>
+                <div className="font-medium">
+                  {u.username || u.email}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {u.online ? 'Online now' : 'Offline'}
+                </div>
+              </div>
             </div>
             <StartChatButton otherUserId={u._id} />
           </div>
