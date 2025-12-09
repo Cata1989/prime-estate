@@ -2,6 +2,7 @@ import connectDB from '@/config/database';
 import User from '@/models/User';
 
 import GoogleProvider from 'next-auth/providers/google';
+import { broadcastPresence } from '@/lib/presenceBus';
 
 export const detectBrowser = (ua = '') => {
   if (/Edg\//i.test(ua)) return 'Edge';
@@ -32,6 +33,22 @@ export const authOptions = {
     updateAge: 24 * 60 * 60, // Renew the token every 24 hours
   },
   callbacks: {
+    async session({ session, token }) {
+      if (token?.userId) {
+        session.user = session.user || {};
+        session.user.id = token.userId;
+      }
+  
+      if (token.sessionLogId) {
+        session.sessionLogId = token.sessionLogId;
+      }
+  
+      if (token.customUA) {
+        session.customUA = token.customUA;
+      }
+  
+      return session;
+    },
     // Invoked on successful signin
     async signIn({ profile }) {
       // 1. Connect to database
@@ -83,6 +100,7 @@ export const authOptions = {
               browser: detectBrowser(token.customUA || ''),
             });
             token.sessionLogId = created._id.toString();
+            broadcastPresence({ userId: dbUser._id.toString(), online: true });
           }
         }
       } catch (err) {

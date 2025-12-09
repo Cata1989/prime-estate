@@ -37,9 +37,26 @@ export default function SessionHistory() {
     }
   }, [session?.user?.id, session?.customUA, update]);
 
-  const handleLogout = useCallback(async () => {
-    await signOut({ redirect: true, callbackUrl: '/' });
-  }, [signOut]);
+    const handleLogout = async () => {
+        try {
+        const sessionLogId = session?.sessionLogId;
+
+        if (sessionLogId) {
+            await fetch('/api/auth/custom-logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionLogId }),
+            });
+        } else {
+            console.warn('No sessionLogId on session, skipping custom-logout');
+        }
+
+        await signOut({ redirect: true, callbackUrl: '/' });
+        } catch (e) {
+        console.error('logout error', e);
+        await signOut({ redirect: true, callbackUrl: '/' });
+        }
+    };
 
   return (
     <div className="mt-8">

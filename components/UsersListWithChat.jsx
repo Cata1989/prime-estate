@@ -1,16 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import StartChatButton from '@/components/StartChatButton';
 
 export default function UsersListWithChat({ currentUserId }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const esRef = useRef(null);
 
   useEffect(() => {
     let aborted = false;
 
-    (async () => {
+    const fetchUsers = async () => {
       try {
         const res = await fetch('/api/users/with-status', { cache: 'no-store' });
         const data = await res.json();
@@ -22,10 +23,39 @@ export default function UsersListWithChat({ currentUserId }) {
       } finally {
         if (!aborted) setLoading(false);
       }
-    })();
+    };
+
+    fetchUsers();
+
+    const es = new EventSource('/api/users/presence-stream');
+    esRef.current = es;
+
+    es.onmessage = (e) => {
+      try {
+        const payload = JSON.parse(e.data);
+        console.log('presence event:', payload);
+        const { userId, online } = payload;
+
+        setUsers((prev) =>
+          prev.map((u) =>
+            u._id === userId ? { ...u, online } : u
+          )
+        );
+      } catch {
+        // ignore
+      }
+    };
+
+    es.onerror = () => {
+      console.warn('presence-stream error');
+    };
 
     return () => {
       aborted = true;
+      if (esRef.current) {
+        esRef.current.close();
+        esRef.current = null;
+      }
     };
   }, []);
 

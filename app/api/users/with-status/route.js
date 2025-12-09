@@ -20,6 +20,10 @@ export const GET = async () => {
             .sort({ username: 1 })
             .lean();
 
+        if (!users.length) {
+            return new Response(JSON.stringify([]), { status: 200 });
+        }
+
         const userIds = users.map((u) => u._id);
 
         const logs = await SessionLog.aggregate([
@@ -30,6 +34,15 @@ export const GET = async () => {
                     _id: '$user',
                     lastLoginAt: { $first: '$loginAt' },
                     lastLogoutAt: { $first: '$logoutAt' }, 
+                    sessions: {
+                        $push: {
+                          loginAt: '$loginAt',
+                          logoutAt: '$logoutAt',
+                          durationSeconds: '$durationSeconds',
+                          browser: '$browser',
+                          userAgent: '$userAgent',
+                        },
+                    },
                 },
             },
         ]);
@@ -51,6 +64,7 @@ export const GET = async () => {
                 username: u.username,
                 email: u.email,
                 online,
+                sessions: log?.sessions || [],
             };
         });
 
