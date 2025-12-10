@@ -1,20 +1,23 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import StartChatButton from '@/components/StartChatButton';
+import { getPusherClient } from '@/lib/pusherClient';
 
 export default function UsersListWithChat({ currentUserId }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const esRef = useRef(null);
 
   useEffect(() => {
     let aborted = false;
 
     const fetchUsers = async () => {
       try {
-        const res = await fetch('/api/users/with-status', { cache: 'no-store' });
+        const res = await fetch('/api/users/with-status', {
+          cache: 'no-store',
+        });
         const data = await res.json();
+
         if (!aborted && Array.isArray(data)) {
           setUsers(data);
         }
@@ -27,35 +30,28 @@ export default function UsersListWithChat({ currentUserId }) {
 
     fetchUsers();
 
-    const es = new EventSource('/api/users/presence-stream');
-    esRef.current = es;
+    const pusher = getPusherClient();
+    const channel = pusher.subscribe('user-status');
 
-    es.onmessage = (e) => {
-      try {
-        const payload = JSON.parse(e.data);
-        console.log('presence event:', payload);
-        const { userId, online } = payload;
-
-        setUsers((prev) =>
-          prev.map((u) =>
-            u._id === userId ? { ...u, online } : u
-          )
+    const handler = (payload) => {
+      const { userId, online } = payload;
+    
+      setUsers((prev) => {
+        const next = prev.map((u) =>
+          (u._id?.toString?.() || u._id) === userId
+            ? { ...u, online }
+            : u
         );
-      } catch {
-        // ignore
-      }
+        return next;
+      });
     };
 
-    es.onerror = () => {
-      console.warn('presence-stream error');
-    };
+    channel.bind('user-status-changed', handler);
 
     return () => {
       aborted = true;
-      if (esRef.current) {
-        esRef.current.close();
-        esRef.current = null;
-      }
+      channel.unbind('user-status-changed', handler);
+      pusher.unsubscribe('user-status');
     };
   }, []);
 

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import {
     Table,
@@ -37,26 +37,13 @@ export default function SessionHistory() {
     }
   }, [session?.user?.id, session?.customUA, update]);
 
-    const handleLogout = async () => {
-        try {
-        const sessionLogId = session?.sessionLogId;
-
-        if (sessionLogId) {
-            await fetch('/api/auth/custom-logout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionLogId }),
-            });
-        } else {
-            console.warn('No sessionLogId on session, skipping custom-logout');
-        }
-
-        await signOut({ redirect: true, callbackUrl: '/' });
-        } catch (e) {
-        console.error('logout error', e);
-        await signOut({ redirect: true, callbackUrl: '/' });
-        }
-    };
+  const handleLogout = async () => {
+    try {
+      await signOut({ redirect: true, callbackUrl: '/' });
+    } catch (e) {
+      console.error('logout error', e);
+    }
+  };
 
   return (
     <div className="mt-8">

@@ -28,12 +28,7 @@ const Navbar = () => {
     setAuthProviders();
   }, []);
 
-  // const handleLogout = useCallback(async () => {
-  //   setIsProfileMenuOpen(false);
-  //   await signOut({ redirect: true, callbackUrl: '/' });
-  // }, [signOut]);
-
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
       try {
         const sessionLogId = session?.sessionLogId;
 
@@ -52,7 +47,7 @@ const Navbar = () => {
         console.error('logout error', e);
         await signOut({ redirect: true, callbackUrl: '/' });
       }
-  };
+  });
 
   return (
     <nav className='bg-blue-500 border-b border-blue-500'>

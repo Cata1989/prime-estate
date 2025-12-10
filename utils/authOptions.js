@@ -2,7 +2,7 @@ import connectDB from '@/config/database';
 import User from '@/models/User';
 
 import GoogleProvider from 'next-auth/providers/google';
-import { broadcastPresence } from '@/lib/presenceBus';
+import { pusherServer } from '@/lib/pusherServer';
 
 export const detectBrowser = (ua = '') => {
   if (/Edg\//i.test(ua)) return 'Edge';
@@ -66,7 +66,7 @@ export const authOptions = {
           image: profile.picture,
         });
       }
-      // 4. Return true to allow sign in
+      // Return true to allow sign in
       return true;
     },
     // Add callback JWT to manage the tokens and avoid the interminent expirations
@@ -92,6 +92,7 @@ export const authOptions = {
           // Only on initial sign-in (when `user` is present), create a new session log
           if (user && !token.sessionLogId) {
             const SessionLog = (await import('@/models/SessionLog')).default;
+
             const created = await SessionLog.create({
               user: dbUser._id,   
               username: dbUser.username,        
@@ -100,19 +101,20 @@ export const authOptions = {
               browser: detectBrowser(token.customUA || ''),
             });
             token.sessionLogId = created._id.toString();
-            broadcastPresence({ userId: dbUser._id.toString(), online: true });
+
+            // Pusher: user become online
+            await pusherServer.trigger('user-status', 'user-status-changed', {
+              userId: dbUser._id.toString(),
+              online: true,
+            });
           }
         }
+
+        return token;
       } catch (err) {
         console.log('JWT dbUser lookup error:', err.message);
       }
       return token;
-    },
-    async session({ session, token }) {
-      if (token?.userId) session.user.id = token.userId;
-      if (token?.sessionLogId) session.sessionLogId = token.sessionLogId;
-      if (token?.customUA) session.customUA = token.customUA;
-      return session;
     },
   },
   events: {
@@ -120,22 +122,42 @@ export const authOptions = {
       try {
         await connectDB();
         const SessionLog = (await import('@/models/SessionLog')).default;
+  
         const userId = token?.userId || session?.user?.id;
-        if (!userId) return;
   
-        // Close the latest open session
-        const log = await SessionLog.findOne({
-          user: userId,
-          logoutAt: { $exists: false },
-        }).sort({ loginAt: -1 });
+        let log = null;
   
-        if (log) {
-          log.logoutAt = new Date();
-          log.durationSeconds = Math.round((log.logoutAt - log.loginAt) / 1000);
-          await log.save();
+        if (token?.sessionLogId) {
+          log = await SessionLog.findById(token.sessionLogId);
         }
+  
+        if (!log && userId) {
+          log = await SessionLog.findOne({
+            user: userId, 
+            $or: [
+              { logoutAt: { $exists: false } },
+              { logoutAt: null },
+            ],
+          }).sort({ loginAt: -1 });
+        }
+  
+        if (!log) {
+          console.log('signOut event: no open SessionLog found, skipping');
+          return;
+        }
+  
+        log.logoutAt = new Date();
+        log.durationSeconds = Math.round((log.logoutAt - log.loginAt) / 1000);
+        await log.save();
+  
+        // Pusher: offline
+        await pusherServer.trigger('user-status', 'user-status-changed', {
+          userId: userId?.toString() || log.user.toString(),
+          online: false,
+        });
+
       } catch (err) {
-        console.log('SessionLog signOut error:', err.message);
+        console.log('SessionLog signOut error:', err);
       }
     },
   },
