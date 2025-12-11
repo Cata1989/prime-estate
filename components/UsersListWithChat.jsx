@@ -9,11 +9,6 @@ export default function UsersListWithChat({ currentUserId }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('CLIENT ENV CHECK:', {
-      NEXT_PUBLIC_PUSHER_KEY: process.env.NEXT_PUBLIC_PUSHER_KEY,
-      NEXT_PUBLIC_PUSHER_CLUSTER: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
-    });
-
     let aborted = false;
 
     const fetchUsers = async () => {
