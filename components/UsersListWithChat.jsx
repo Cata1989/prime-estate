@@ -31,9 +31,10 @@ export default function UsersListWithChat({ currentUserId }) {
     fetchUsers();
 
     const pusher = getPusherClient();
+
     const channel = pusher.subscribe('user-status');
 
-    const handler = (payload) => {
+    const statusHandler = (payload) => {
       const { userId, online } = payload;
     
       setUsers((prev) => {
@@ -46,11 +47,11 @@ export default function UsersListWithChat({ currentUserId }) {
       });
     };
 
-    channel.bind('user-status-changed', handler);
+    channel.bind('user-status-changed', statusHandler);
 
     return () => {
       aborted = true;
-      channel.unbind('user-status-changed', handler);
+      channel.unbind('user-status-changed', statusHandler);
       pusher.unsubscribe('user-status');
     };
   }, []);

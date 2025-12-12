@@ -1,105 +1,93 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { getPusherClient } from '@/lib/pusherClient';
+import { formatTimestamp } from '@/lib/utils';
 
-export default function ChatRoom({ conversationId }) {
-  const [messages, setMessages] = useState([]);
-  const inputRef = useRef(null);
-  const esRef = useRef(null);
+export default function ChatRoom({ conversationId, initialMessages }) {
+  const [messages, setMessages] = useState(initialMessages || []);
+  const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    if (!conversationId) return;
+    const pusher = getPusherClient();
+    const channelName = `conversation-${conversationId}`;
+    const channel = pusher.subscribe(channelName);
 
-    let aborted = false;
+    const handler = (payload) => {
+      setMessages((prev) => [...prev, payload]);
+    };
 
-    (async () => {
-      const init = await fetch(`/api/chat/messages/${conversationId}`, {
-        cache: 'no-store',
-      }).then((r) => r.json());
-
-      if (!aborted) {
-        setMessages(Array.isArray(init) ? init : []);
-      }
-
-      if (esRef.current) {
-        esRef.current.close();
-      }
-
-      const es = new EventSource(
-        `/api/chat/stream?conversationId=${encodeURIComponent(
-          conversationId
-        )}`
-      );
-      esRef.current = es;
-
-      es.onmessage = (e) => {
-        try {
-          const msg = JSON.parse(e.data);
-          setMessages((prev) => {
-            if (prev.some((m) => m._id === msg._id)) return prev;
-            return [...prev, msg];
-          });
-        } catch { }
-      };
-
-      es.onerror = () => { };
-    })();
+    channel.bind('message-created', handler);
 
     return () => {
-      aborted = true;
-      if (esRef.current) {
-        esRef.current.close();
-        esRef.current = null;
-      }
+      channel.unbind('message-created', handler);
+      pusher.unsubscribe(channelName);
     };
   }, [conversationId]);
 
-  const send = async () => {
-    const text = inputRef.current?.value?.trim();
-    if (!text) return;
+  useEffect(() => {
+    if (!messagesEndRef.current) return;
+    messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-    await fetch('/api/chat/messages/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId, text }),
-    });
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!text.trim()) return;
 
-    inputRef.current.value = '';
+    try {
+      setSending(true);
+      const res = await fetch(`/api/chat/messages/${conversationId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('Send message error:', data.error);
+      }
+
+      setText('');
+    } catch (err) {
+      console.error('Send message exception:', err);
+    } finally {
+      setSending(false);
+    }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      send();
-    }
-  } 
-
   return (
-    <div className="flex flex-col gap-3">
-      <div className="border rounded p-3 h-80 overflow-y-auto bg-white">
+    <div className="flex flex-col h-full max-h-[70vh] border rounded p-3">
+      <div className="flex-1 overflow-y-auto space-y-2 mb-3">
         {messages.map((m) => (
-          <div key={m._id} className="mb-2">
-            <div className="text-xs text-gray-500 flex justify-between">
-              <span>{m.senderName || 'Necunoscut'}</span>
-              <span>{new Date(m.createdAt).toLocaleString()}</span>
+            <div key={m._id} className="text-sm">
+              <div className="flex items-baseline gap-2">
+                <span className="font-semibold">{m.senderName}</span>
+                <span className="text-[11px] text-gray-500">
+                  {formatTimestamp(m.createdAt)}
+                </span>
+              </div>
+              <div>{m.text}</div>
             </div>
-            <div>{m.text}</div>
-          </div>
-        ))}
+          ))}
+          <div ref={messagesEndRef} />
       </div>
-      <div className="flex gap-2">
+
+      <form onSubmit={sendMessage} className="flex gap-2">
         <input
-          ref={inputRef}
-          onKeyDown={handleKeyDown}
-          className="border rounded px-2 py-1 flex-1"
-          placeholder="Scrie un mesaj..."
+          className="flex-1 border rounded px-2 py-1 text-sm"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Write something..."
         />
         <button
-          onClick={send}
-          className="px-3 py-1 bg-blue-600 text-white rounded"
+          type="submit"
+          disabled={sending}
+          className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
         >
-          Trimite
+          {sending ? 'Sending...' : 'Send'}
         </button>
-      </div>
+      </form>
     </div>
   );
 }

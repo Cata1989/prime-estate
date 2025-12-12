@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export const GET = async () => {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return new Response('Neautorizat', { status: 401 });
+    if (!session?.user?.id) return new Response('Unauthorized', { status: 401 });
 
     await connectDB();
 
@@ -20,6 +20,6 @@ export const GET = async () => {
 
     return new Response(JSON.stringify(convs), { status: 200 });
   } catch {
-    return new Response(JSON.stringify({ error: 'Eroare listare conversatii' }), { status: 500 });
+    return new Response(JSON.stringify({ error: 'Error listing conversations' }), { status: 500 });
   }
 };

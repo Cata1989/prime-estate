@@ -30,24 +30,11 @@ const Navbar = () => {
 
   const handleLogout = useCallback(async () => {
       try {
-        const sessionLogId = session?.sessionLogId;
-
-        if (sessionLogId) {
-          await fetch('/api/auth/custom-logout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionLogId }),
-          });
-        } else {
-          console.warn('No sessionLogId on session, skipping custom-logout');
-        }
-
         await signOut({ redirect: true, callbackUrl: '/' });
       } catch (e) {
         console.error('logout error', e);
-        await signOut({ redirect: true, callbackUrl: '/' });
       }
-  });
+  }, []);
 
   return (
     <nav className='bg-blue-500 border-b border-blue-500'>
