@@ -3,6 +3,7 @@ import { authOptions } from "@/utils/authOptions";
 import connectDB from "@/config/database";
 import User from "@/models/User";
 import SessionLog from "@/models/SessionLog";
+import Conversation from "@/models/Conversation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +14,9 @@ export const GET = async () => {
         if (!session?.user?.id) { 
             return new Response("Unauthorized", { status: 401 });
         }
+
+        // define currentUserId
+        const currentUserId = session.user.id.toString();
 
         await connectDB();
 
@@ -47,24 +51,50 @@ export const GET = async () => {
             },
         ]);
 
-        const byUserId = new Map(
-            logs.map((l) => [l._id.toString(), l])
-        );
+        const byUserId = new Map(logs.map((l) => [l._id.toString(), l]));
 
-        const result = users.map((u) => {
-            const log = byUserId.get(u._id.toString());
-            let online = false;
+        //all conversations where current user participates
+        const convs = await Conversation.find({
+            participants: currentUserId,
+        }).lean();
 
-            if (log && !log.lastLogoutAt) {
-                online = true;
+        // map: otherUserId -> unreadCount for currentUserId
+        const unreadMap = new Map();
+
+        for (const conv of convs) {
+            const participants = (conv.participants || []).map(String);
+            const otherUserId = participants.find((id) => id !== currentUserId);
+            if (!otherUserId) continue;
+      
+            const unreadByUser = conv.unreadByUser || {};
+            let count = 0;
+      
+            if (typeof unreadByUser.get === 'function') {
+              count = unreadByUser.get(currentUserId) || 0;
+            } else if (typeof unreadByUser === 'object') {
+              count = unreadByUser[currentUserId] || 0;
             }
+      
+            unreadMap.set(otherUserId, count);
+        }
 
+        // 3) build result with unreadCount
+        const result = users.map((u) => {
+            const id = u._id.toString();
+            const log = byUserId.get(id);
+            let online = false;
+    
+            if (log && !log.lastLogoutAt) {
+            online = true;
+            }
+    
             return {
-                _id: u._id,
-                username: u.username,
-                email: u.email,
-                online,
-                sessions: log?.sessions || [],
+            _id: u._id,
+            username: u.username,
+            email: u.email,
+            online,
+            sessions: log?.sessions || [],
+            unreadCount: unreadMap.get(id) || 0,
             };
         });
 

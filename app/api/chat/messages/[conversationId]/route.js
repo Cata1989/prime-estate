@@ -27,6 +27,30 @@ export const GET = async (_req, { params }) => {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
     }
 
+    // === RESET unread for current user in this conversation ===
+    const currentUserId = session.user.id.toString();
+
+    await Conversation.updateOne(
+      { _id: conversationId },
+      { $set: { [`unreadByUser.${currentUserId}`]: 0 } }
+    );
+
+    // find who is the other user, so we can inform /profile about which row to update
+    const participants = conv.participants.map(String);
+    const otherUserId = participants.find((pid) => pid !== currentUserId);
+
+    if (otherUserId) {
+      await pusherServer.trigger(
+        `user-${currentUserId}`,
+        'unread-updated',
+        {
+          otherUserId,
+          unreadCount: 0,
+        }
+      );
+    }
+    // === END RESET ===
+
     const msgs = await ChatMessage
       .find({ conversationId })
       .sort({ createdAt: 1 })
@@ -92,6 +116,53 @@ export const POST = async (req, { params }) => {
       text: populated.text,
       createdAt: populated.createdAt,
     };
+
+    // update unreadByUser for recipients
+    const senderId = session.user.id.toString();
+
+    // all other participants are recipients
+    const recipients = conv.participants
+      .map(String)
+      .filter((pid) => pid !== senderId);
+
+    if (recipients.length > 0) {
+      // increment unreadByUser.<recipientId> by 1
+      await Conversation.updateOne(
+        { _id: conversationId },
+        {
+          $inc: recipients.reduce((acc, rid) => {
+            acc[`unreadByUser.${rid}`] = 1;
+            return acc;
+            // $set: { lastMessageAt: new Date() },
+          }, {}),
+        }
+      );
+
+      // get updated conversation to know current unread counts
+      const convAfter = await Conversation.findById(conversationId).lean();
+
+      // === ADD 2: send Pusher "unread-updated" to each recipient ===
+      for (const rid of recipients) {
+        const unreadByUser = convAfter.unreadByUser || {};
+        let unreadCount = 0;
+
+        // Map or plain object
+        if (typeof unreadByUser.get === 'function') {
+          unreadCount = unreadByUser.get(rid) || 0;
+        } else if (typeof unreadByUser === 'object') {
+          unreadCount = unreadByUser[rid] || 0;
+        }
+
+        await pusherServer.trigger(
+          `user-${rid}`,          // per-user channel
+          'unread-updated',       // event name
+          {
+            otherUserId: senderId, // from this user
+            unreadCount,           // unread in conversation with this user
+          }
+        );
+      }
+    }
 
     await pusherServer.trigger(
       `conversation-${conversationId}`,

@@ -32,6 +32,7 @@ export default function UsersListWithChat({ currentUserId }) {
 
     const pusher = getPusherClient();
 
+    // 1) global status channel
     const channel = pusher.subscribe('user-status');
 
     const statusHandler = (payload) => {
@@ -49,12 +50,40 @@ export default function UsersListWithChat({ currentUserId }) {
 
     channel.bind('user-status-changed', statusHandler);
 
+    // 2) per-user unread channel
+    let unreadChannel;
+    let unreadHandler;
+
+    if (currentUserId) {
+      const chName = `user-${currentUserId}`;
+      unreadChannel = pusher.subscribe(chName);
+
+      unreadHandler = (payload) => {
+        const { otherUserId, unreadCount } = payload;
+
+        setUsers((prev) =>
+          prev.map((u) =>
+            (u._id?.toString?.() || u._id) === otherUserId
+              ? { ...u, unreadCount }
+              : u
+          )
+        );
+      };
+
+      unreadChannel.bind('unread-updated', unreadHandler);
+    }
+
     return () => {
       aborted = true;
       channel.unbind('user-status-changed', statusHandler);
       pusher.unsubscribe('user-status');
+
+      if (unreadChannel && unreadHandler) {
+        unreadChannel.unbind('unread-updated', unreadHandler);
+        pusher.unsubscribe(`user-${currentUserId}`);
+      }
     };
-  }, []);
+  }, [currentUserId]);
 
   if (loading) return <div>Loading users...</div>;
 
@@ -83,7 +112,7 @@ export default function UsersListWithChat({ currentUserId }) {
                 </div>
               </div>
             </div>
-            <StartChatButton otherUserId={u._id} />
+            <StartChatButton otherUserId={u._id} unreadCount={u.unreadCount || 0} />
           </div>
         ))}
     </div>

@@ -5,6 +5,7 @@ import ChatMessage from '@/models/ChatMessage';
 import Conversation from '@/models/Conversation';
 import mongoose from 'mongoose';
 import ChatRoom from '@/components/ChatRoom';
+import { pusherServer } from '@/lib/pusherServer';
 
 export default async function ChatPage({ params }) {
   const session = await getServerSession(authOptions);
@@ -13,16 +14,41 @@ export default async function ChatPage({ params }) {
   }
 
   const conversationId = params.conversationId;
+  const currentUserId = session.user.id.toString();
 
   if (!mongoose.Types.ObjectId.isValid(conversationId)) {
-    return <div>Invalid conversation ID</div>;
+    return <div>ID invalid</div>;
   }
 
   await connectDB();
 
   const conv = await Conversation.findById(conversationId).lean();
-  if (!conv || !conv.participants.map(String).includes(session.user.id)) {
-    return <div>No access to this conversation</div>;
+  if (!conv || !conv.participants.map(String).includes(currentUserId)) {
+    return <div>Forbidden</div>;
+  }
+
+  // reset unread direct on this page ===
+  await Conversation.updateOne(
+    { _id: conversationId },
+    { 
+      $set: {
+        [`unreadByUser.${currentUserId}`]: 0,
+      },
+    }
+  );
+
+  const participants = conv.participants.map(String);
+  const otherUserId = participants.find((pid) => pid !== currentUserId);
+
+  if (otherUserId) {
+    await pusherServer.trigger(
+      `user-${currentUserId}`,
+      'unread-updated',
+      {
+        otherUserId,
+        unreadCount: 0,
+      }
+    );
   }
 
   const msgs = await ChatMessage
