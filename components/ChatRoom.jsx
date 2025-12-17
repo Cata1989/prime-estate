@@ -12,8 +12,12 @@ export default function ChatRoom({ conversationId, initialMessages }) {
 
   useEffect(() => {
     const pusher = getPusherClient();
+
     const channelName = `conversation-${conversationId}`;
+    const presenceChannelName = `presence-conversation-${conversationId}`;
+
     const channel = pusher.subscribe(channelName);
+    pusher.subscribe(presenceChannelName);
 
     const handler = (payload) => {
       setMessages((prev) => [...prev, payload]);
@@ -21,9 +25,24 @@ export default function ChatRoom({ conversationId, initialMessages }) {
 
     channel.bind('message-created', handler);
 
+    // fetch messages on mount
+    const fetchMessages = async () => {
+      try {
+        const res = await fetch(`/api/chat/messages/${conversationId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setMessages(data);
+      } catch (e) {
+        console.error('fetchMessages error', e);
+      }
+    };
+
+    fetchMessages();
+
     return () => {
       channel.unbind('message-created', handler);
       pusher.unsubscribe(channelName);
+      pusher.unsubscribe(presenceChannelName);
     };
   }, [conversationId]);
 

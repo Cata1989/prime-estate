@@ -5,6 +5,7 @@ import ChatMessage from '@/models/ChatMessage';
 import Conversation from '@/models/Conversation';
 import mongoose from 'mongoose';
 import { pusherServer } from '@/lib/pusherServer';
+import { getPresenceMembers } from '@/lib/utils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,44 +13,31 @@ export const dynamic = 'force-dynamic';
 export const GET = async (_req, { params }) => {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return new Response('Unauthorized', { status: 401 });
+    if (!session?.user?.id) {
+      return new Response('Unauthorized', { status: 401 });
+    }
 
     const conversationId = params.conversationId;
 
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {
-      return new Response(JSON.stringify({ error: 'ID invalid' }), { status: 400 });
+      return new Response(
+        JSON.stringify({ error: 'ID invalid' }),
+        { status: 400 }
+      );
     }
 
     await connectDB();
 
     const conv = await Conversation.findById(conversationId).lean();
-    if (!conv || !conv.participants.map(String).includes(session.user.id)) {
-      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
-    }
-
-    // === RESET unread for current user in this conversation ===
-    const currentUserId = session.user.id.toString();
-
-    await Conversation.updateOne(
-      { _id: conversationId },
-      { $set: { [`unreadByUser.${currentUserId}`]: 0 } }
-    );
-
-    // find who is the other user, so we can inform /profile about which row to update
-    const participants = conv.participants.map(String);
-    const otherUserId = participants.find((pid) => pid !== currentUserId);
-
-    if (otherUserId) {
-      await pusherServer.trigger(
-        `user-${currentUserId}`,
-        'unread-updated',
-        {
-          otherUserId,
-          unreadCount: 0,
-        }
+    if (
+      !conv ||
+      !conv.participants.map(String).includes(session.user.id)
+    ) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403 }
       );
     }
-    // === END RESET ===
 
     const msgs = await ChatMessage
       .find({ conversationId })
@@ -58,43 +46,61 @@ export const GET = async (_req, { params }) => {
       .populate('sender', 'username')
       .lean();
 
-      const result = msgs.map((m) => ({
-        _id: m._id.toString(),
-        conversationId: m.conversationId.toString(),
-        senderId: m.sender?._id?.toString?.() || m.sender?.toString?.() || '',
-        senderName: m.sender?.username || 'Unknown',
-        text: m.text,
-        createdAt: m.createdAt,
-      }));
+    const result = msgs.map((m) => ({
+      _id: m._id.toString(),
+      conversationId: m.conversationId.toString(),
+      senderId: m.sender?._id?.toString?.() || m.sender?.toString?.() || '',
+      senderName: m.sender?.username || 'Unknown',
+      text: m.text,
+      createdAt: m.createdAt,
+    }));
 
     return new Response(JSON.stringify(result), { status: 200 });
-  } catch {
-    return new Response(JSON.stringify({ error: 'Eroare listare mesaje' }), { status: 500 });
+  } catch (e) {
+    console.error('GET /api/chat/messages/[conversationId] error', e);
+    return new Response(
+      JSON.stringify({ error: 'Eroare listare mesaje' }),
+      { status: 500 }
+    );
   }
 };
 
-// add POST method for sending with Pusher mechanism
+// POST – send message + update unread based on presence
 export const POST = async (req, { params }) => {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return new Response('Unauthorized', { status: 401 });
+    if (!session?.user?.id) {
+      return new Response('Unauthorized', { status: 401 });
+    }
 
     const conversationId = params.conversationId;
 
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {
-      return new Response(JSON.stringify({ error: 'ID invalid' }), { status: 400 });
+      return new Response(
+        JSON.stringify({ error: 'ID invalid' }),
+        { status: 400 }
+      );
     }
 
     const { text } = await req.json();
     if (!text || !text.trim()) {
-      return new Response(JSON.stringify({ error: 'Empty message' }), { status: 400 });
+      return new Response(
+        JSON.stringify({ error: 'Empty message' }),
+        { status: 400 }
+      );
     }
 
     await connectDB();
 
     const conv = await Conversation.findById(conversationId).lean();
-    if (!conv || !conv.participants.map(String).includes(session.user.id)) {
-      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
+    if (
+      !conv ||
+      !conv.participants.map(String).includes(session.user.id)
+    ) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403 }
+      );
     }
 
     const msg = await ChatMessage.create({
@@ -117,50 +123,58 @@ export const POST = async (req, { params }) => {
       createdAt: populated.createdAt,
     };
 
-    // update unreadByUser for recipients
     const senderId = session.user.id.toString();
-
-    // all other participants are recipients
-    const recipients = conv.participants
-      .map(String)
-      .filter((pid) => pid !== senderId);
+    const participants = (conv.participants || []).map(String);
+    const recipients = participants.filter((id) => id !== senderId);
 
     if (recipients.length > 0) {
-      // increment unreadByUser.<recipientId> by 1
-      await Conversation.updateOne(
-        { _id: conversationId },
-        {
-          $inc: recipients.reduce((acc, rid) => {
-            acc[`unreadByUser.${rid}`] = 1;
-            return acc;
-            // $set: { lastMessageAt: new Date() },
-          }, {}),
+
+      let activeUserIds = new Set();
+      try {
+        const presenceChannelName = `presence-conversation-${conversationId}`;
+        const members = await getPresenceMembers(presenceChannelName);
+        activeUserIds = new Set(members.map((m) => m.id.toString()));
+      } catch (e) {
+        console.error('Error reading presence members', e);
+      }
+
+      const incObj = recipients.reduce((acc, rid) => {
+        const isActive = activeUserIds.has(rid);
+        if (!isActive) {
+          acc[`unreadByUser.${rid}`] = 1;
         }
-      );
+        return acc;
+      }, {});
 
-      // get updated conversation to know current unread counts
-      const convAfter = await Conversation.findById(conversationId).lean();
-
-      // === ADD 2: send Pusher "unread-updated" to each recipient ===
-      for (const rid of recipients) {
-        const unreadByUser = convAfter.unreadByUser || {};
-        let unreadCount = 0;
-
-        // Map or plain object
-        if (typeof unreadByUser.get === 'function') {
-          unreadCount = unreadByUser.get(rid) || 0;
-        } else if (typeof unreadByUser === 'object') {
-          unreadCount = unreadByUser[rid] || 0;
-        }
-
-        await pusherServer.trigger(
-          `user-${rid}`,          // per-user channel
-          'unread-updated',       // event name
-          {
-            otherUserId: senderId, // from this user
-            unreadCount,           // unread in conversation with this user
-          }
+      if (Object.keys(incObj).length > 0) {
+        await Conversation.updateOne(
+          { _id: conversationId },
+          { $inc: incObj }
         );
+
+        const convAfter = await Conversation.findById(conversationId).lean();
+        const unreadByUserAfter = convAfter.unreadByUser || {};
+
+        for (const rid of recipients) {
+          const isActive = activeUserIds.has(rid);
+          if (isActive) continue;
+
+          let unreadCount = 0;
+          if (typeof unreadByUserAfter.get === 'function') {
+            unreadCount = unreadByUserAfter.get(rid) || 0;
+          } else if (typeof unreadByUserAfter === 'object') {
+            unreadCount = unreadByUserAfter[rid] || 0;
+          }
+
+          await pusherServer.trigger(
+            `user-${rid}`,
+            'unread-updated',
+            {
+              otherUserId: senderId,
+              unreadCount,
+            }
+          );
+        }
       }
     }
 
@@ -172,7 +186,13 @@ export const POST = async (req, { params }) => {
 
     return new Response(JSON.stringify(payload), { status: 201 });
   } catch (err) {
-    console.error('POST /api/chat/messages/[conversationId] error:', err);
-    return new Response(JSON.stringify({ error: 'Eroare server' }), { status: 500 });
+    console.error(
+      'POST /api/chat/messages/[conversationId] error:',
+      err
+    );
+    return new Response(
+      JSON.stringify({ error: 'Server error' }),
+      { status: 500 }
+    );
   }
 };

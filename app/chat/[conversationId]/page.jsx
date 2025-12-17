@@ -30,11 +30,7 @@ export default async function ChatPage({ params }) {
   // reset unread direct on this page ===
   await Conversation.updateOne(
     { _id: conversationId },
-    { 
-      $set: {
-        [`unreadByUser.${currentUserId}`]: 0,
-      },
-    }
+    { $set: { [`unreadByUser.${currentUserId}`]: 0 } }
   );
 
   const participants = conv.participants.map(String);
@@ -52,7 +48,7 @@ export default async function ChatPage({ params }) {
   }
 
   const msgs = await ChatMessage
-    .find({ conversationId: new mongoose.Types.ObjectId(conversationId) })
+    .find({ conversationId })
     .sort({ createdAt: 1 })
     .limit(200)
     .populate('sender', 'username')
@@ -72,7 +68,6 @@ export default async function ChatPage({ params }) {
       <ChatRoom
         conversationId={conversationId}
         initialMessages={initialMessages}
-        currentUserId={session.user.id}
       />
     </div>
   );
