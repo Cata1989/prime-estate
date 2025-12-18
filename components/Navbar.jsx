@@ -104,7 +104,11 @@ const Navbar = () => {
                   </div>
                 </div>
               </div>
-
+              <Link className='flex flex-shrink-0 items-center' href='/'>
+                <span className='ml-2 text-2xl font-bold text-white sm:block md:hidden'>
+                  PrimeEstate
+                </span>
+              </Link>
               {session && (
                 <div className='hidden md:block'>
                   <div className='ml-4 flex items-center md:ml-6'>
@@ -165,9 +169,7 @@ const Navbar = () => {
                   </div>
                 </div>
               )}
-
               {/* Show login button if not logged in on desktop */}
-
               {!session && (
                 <div className='hidden md:block md:ml-6'>
                   <div className='flex items-center'>
@@ -185,7 +187,6 @@ const Navbar = () => {
                   </div>
                 </div>
               )}
-
               <div className='-mr-2 flex md:hidden'>
                 {/* Mobile menu button */}
                 <DisclosureButton className='group relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-white/5 hover:text-white focus:outline-2 focus:outline-offset-2 focus:outline-indigo-500'>
