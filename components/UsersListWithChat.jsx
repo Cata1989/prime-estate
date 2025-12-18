@@ -37,12 +37,10 @@ export default function UsersListWithChat({ currentUserId }) {
 
     const statusHandler = (payload) => {
       const { userId, online } = payload;
-    
+
       setUsers((prev) => {
         const next = prev.map((u) =>
-          (u._id?.toString?.() || u._id) === userId
-            ? { ...u, online }
-            : u
+          (u._id?.toString?.() || u._id) === userId ? { ...u, online } : u
         );
         return next;
       });
@@ -88,15 +86,15 @@ export default function UsersListWithChat({ currentUserId }) {
   if (loading) return <div>Loading users...</div>;
 
   return (
-    <div className="space-y-3">
+    <div className='space-y-3'>
       {users
         .filter((u) => u._id !== currentUserId)
         .map((u) => (
           <div
             key={u._id}
-            className="flex items-center justify-between border rounded px-3 py-2 bg-white"
+            className='flex items-center justify-between border rounded px-3 py-2 bg-white'
           >
-            <div className="flex items-center gap-2">
+            <div className='flex items-center gap-2'>
               <span
                 className={`inline-block h-3 w-3 rounded-full ${
                   u.online ? 'bg-green-500' : 'bg-gray-400'
@@ -104,15 +102,16 @@ export default function UsersListWithChat({ currentUserId }) {
                 title={u.online ? 'Online' : 'Offline'}
               />
               <div>
-                <div className="font-medium">
-                  {u.username || u.email}
-                </div>
-                <div className="text-xs text-gray-500">
+                <div className='font-medium'>{u.username || u.email}</div>
+                <div className='text-xs text-gray-500'>
                   {u.online ? 'Online now' : 'Offline'}
                 </div>
               </div>
             </div>
-            <StartChatButton otherUserId={u._id} unreadCount={u.unreadCount || 0} />
+            <StartChatButton
+              otherUserId={u._id}
+              unreadCount={u.unreadCount || 0}
+            />
           </div>
         ))}
     </div>

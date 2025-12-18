@@ -22,10 +22,7 @@ const MainLayout = ({ children }) => {
             <Navbar />
             <main>{children}</main>
             <Footer />
-            <Toaster 
-              richColors
-              position="top-right" 
-            />
+            <Toaster richColors position='top-right' />
           </body>
         </html>
       </AuthProvider>

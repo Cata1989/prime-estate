@@ -29,7 +29,7 @@ const PropertyContactForm = ({ property }) => {
 
     try {
       // Sending message in platform
-      const resMessage = await fetch('/api/messages', {   
+      const resMessage = await fetch('/api/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

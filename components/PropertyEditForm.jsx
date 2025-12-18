@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { fetchProperty } from '@/utils/requests';
-import { IoCloseCircleSharp } from "react-icons/io5";
+import { IoCloseCircleSharp } from 'react-icons/io5';
 import Image from 'next/image';
 import { Gallery, Item } from 'react-photoswipe-gallery';
 
@@ -118,7 +118,7 @@ const PropertyEditForm = () => {
   };
 
   const handleRemoveImage = (idx) => {
-    setFields(f => ({ ...f, images: f.images.filter((_, i) => i !== idx) }));
+    setFields((f) => ({ ...f, images: f.images.filter((_, i) => i !== idx) }));
   };
 
   const handleSubmit = async (e) => {
@@ -601,8 +601,8 @@ const PropertyEditForm = () => {
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2">
+        <div className='mb-4'>
+          <label className='block text-gray-700 font-bold mb-2'>
             Existing Images ({fields.images.length})
           </label>
 
@@ -611,35 +611,35 @@ const PropertyEditForm = () => {
               <div className='container mx-auto'>
                 {fields.images.length === 1 ? (
                   <div className='relative w-24 h-24'>
-                  <Item
-                    original={fields.images[0]}
-                    thumbnail={fields.images[0]}
-                    width='1000'
-                    height='600'
-                  >
-                    {({ ref, open }) => (
-                      <Image
-                        ref={ref}
-                        onClick={open}
-                        src={fields.images[0]}
-                        alt=''
-                        className="w-24 h-24 object-cover rounded"
-                        width={1800}
-                        height={400}
-                        priority={true}
-                      />
-                    )}
-                  </Item>
-                  <button
-                    type="button"
-                    className="absolute top-0 right-0 text-black font-bold p-1"
-                    onClick={() => handleRemoveImage(index)}
-                  >
-                    <IoCloseCircleSharp className='w-[24px] h-[24px]'/>
-                  </button>
+                    <Item
+                      original={fields.images[0]}
+                      thumbnail={fields.images[0]}
+                      width='1000'
+                      height='600'
+                    >
+                      {({ ref, open }) => (
+                        <Image
+                          ref={ref}
+                          onClick={open}
+                          src={fields.images[0]}
+                          alt=''
+                          className='w-24 h-24 object-cover rounded'
+                          width={1800}
+                          height={400}
+                          priority={true}
+                        />
+                      )}
+                    </Item>
+                    <button
+                      type='button'
+                      className='absolute top-0 right-0 text-black font-bold p-1'
+                      onClick={() => handleRemoveImage(index)}
+                    >
+                      <IoCloseCircleSharp className='w-[24px] h-[24px]' />
+                    </button>
                   </div>
                 ) : (
-                  <div className="flex gap-4 flex-wrap">
+                  <div className='flex gap-4 flex-wrap'>
                     {fields.images.map((image, index) => (
                       <div className='relative w-24 h-24'>
                         <Item
@@ -654,7 +654,7 @@ const PropertyEditForm = () => {
                               onClick={open}
                               src={image}
                               alt=''
-                              className="w-24 h-24 object-cover rounded"
+                              className='w-24 h-24 object-cover rounded'
                               width={0}
                               height={0}
                               sizes='100vw'
@@ -663,11 +663,11 @@ const PropertyEditForm = () => {
                           )}
                         </Item>
                         <button
-                          type="button"
-                          className="absolute top-0 right-0 text-black font-bold p-1"
+                          type='button'
+                          className='absolute top-0 right-0 text-black font-bold p-1'
                           onClick={() => handleRemoveImage(index)}
                         >
-                          <IoCloseCircleSharp className='w-[24px] h-[24px]'/>
+                          <IoCloseCircleSharp className='w-[24px] h-[24px]' />
                         </button>
                       </div>
                     ))}
@@ -678,19 +678,19 @@ const PropertyEditForm = () => {
           </Gallery>
         </div>
 
-        <div className="mb-4">
+        <div className='mb-4'>
           <label
-            htmlFor="images"
-            className="block text-gray-700 font-bold mb-2"
+            htmlFor='images'
+            className='block text-gray-700 font-bold mb-2'
           >
             Add New Images
           </label>
           <input
-            type="file"
-            id="images"
-            name="images"
-            className="border rounded w-full py-2 px-3"
-            accept="image/*"
+            type='file'
+            id='images'
+            name='images'
+            className='border rounded w-full py-2 px-3'
+            accept='image/*'
             multiple
           />
         </div>

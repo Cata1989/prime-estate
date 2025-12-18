@@ -5,19 +5,21 @@ import {
   FaTimes,
   FaCheck,
   FaMapMarker,
-  FaEnvelope, 
-  FaPhone,   
+  FaEnvelope,
+  FaPhone,
 } from 'react-icons/fa';
 import PropertyMap from '@/components/PropertyMap';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const PropertyDetails = ({ property }) => {
-
   const seller = property.account_info || {};
-  const initials = (seller.username || seller.email || 'NA').slice(0, 2).toUpperCase();
-  const avatarSrc = typeof seller.image === 'string' && seller.image.startsWith('https')
-    ? seller.image
-    : undefined;
+  const initials = (seller.username || seller.email || 'NA')
+    .slice(0, 2)
+    .toUpperCase();
+  const avatarSrc =
+    typeof seller.image === 'string' && seller.image.startsWith('https')
+      ? seller.image
+      : undefined;
 
   return (
     <main>
@@ -70,53 +72,56 @@ const PropertyDetails = ({ property }) => {
       </div>
 
       <div className='flex items-center gap-3 bg-white p-6 rounded-lg mt-6 mb-5 shadow-sm border border-slate-100'>
-        <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+        <Avatar className='h-10 w-10 border-2 border-white shadow-sm'>
           {avatarSrc && (
             <AvatarImage
               src={avatarSrc}
               alt={seller.username || 'Seller'}
-              className="h-full w-full object-cover"
+              className='h-full w-full object-cover'
             />
           )}
-          <AvatarFallback className="bg-slate-200 text-slate-600 text-xs font-bold">
+          <AvatarFallback className='bg-slate-200 text-slate-600 text-xs font-bold'>
             {initials}
           </AvatarFallback>
         </Avatar>
 
-        <div className="flex flex-col overflow-hidden">
-          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+        <div className='flex flex-col overflow-hidden'>
+          <span className='text-xs uppercase tracking-wider text-slate-400 font-semibold'>
             Listed By
           </span>
-          <span className="flex text-sm font-bold text-slate-800 truncate">
+          <span className='flex text-sm font-bold text-slate-800 truncate'>
             {seller.username || property.seller_info?.name || 'Property Agent'}
           </span>
-          
-          <div className="flex flex-col md:flex-row gap-3 mt-3">
+
+          <div className='flex flex-col md:flex-row gap-3 mt-3'>
             {(seller.email || property.seller_info?.email) && (
               <a
                 href={`mailto:${seller.email || property.seller_info?.email}`}
-                className="text-slate-500 hover:text-blue-600 transition-colors flex items-center gap-1 text-xs"
-                title="Send Email"
+                className='text-slate-500 hover:text-blue-600 transition-colors flex items-center gap-1 text-xs'
+                title='Send Email'
               >
-                <FaEnvelope className="text-s" />
-                <span className="text-[15px] sm:inline">Email: {seller.email} </span>
+                <FaEnvelope className='text-s' />
+                <span className='text-[15px] sm:inline'>
+                  Email: {seller.email}
+                </span>
               </a>
             )}
-            
+
             {property.seller_info?.phone && (
               <a
                 href={`tel:${property.seller_info.phone}`}
-                className="text-slate-500 hover:text-green-600 transition-colors flex items-center gap-1 text-xs"
-                title="Call Agent"
+                className='text-slate-500 hover:text-green-600 transition-colors flex items-center gap-1 text-xs'
+                title='Call Agent'
               >
-                <FaPhone className="text-s" />
-                <span className="text-[15px] sm:inline">Call: {property.seller_info.phone} </span>
+                <FaPhone className='text-s' />
+                <span className='text-[15px] sm:inline'>
+                  Call: {property.seller_info.phone}{' '}
+                </span>
               </a>
             )}
           </div>
         </div>
       </div>
-
 
       <div className='bg-white p-6 rounded-lg shadow-md mt-6'>
         <h3 className='text-lg font-bold mb-6'>Description & Details</h3>

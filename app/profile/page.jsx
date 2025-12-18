@@ -16,8 +16,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import SessionHistory from '@/components/SessionHistory';
 import UsersListWithChat from '@/components/UsersListWithChat';
 
@@ -57,7 +57,6 @@ const ProfilePage = () => {
   }, [session]);
 
   const handleDeleteProperty = async (propertyId) => {
-
     try {
       const res = await fetch(`/api/properties/${propertyId}`, {
         method: 'DELETE',
@@ -104,13 +103,13 @@ const ProfilePage = () => {
                 <span className='font-bold block'>Email: </span> {profileEmail}
               </h2>
               <SessionHistory />
-              
+
               <div>
-                <h2 className="text-xl font-semibold mt-10 mb-3">
-                Platform users
+                <h2 className='text-xl font-semibold mt-10 mb-3'>
+                  Platform users
                 </h2>
-                <p className="text-sm text-gray-600 mb-3">
-                Choose a user to start a chat.
+                <p className='text-sm text-gray-600 mb-3'>
+                  Choose a user to start a chat.
                 </p>
                 <UsersListWithChat currentUserId={session?.user.id} />
               </div>
@@ -146,13 +145,17 @@ const ProfilePage = () => {
                     <div className='mt-2'>
                       <AlertDialog>
                         <AlertDialogTrigger>
-                          <Button className='bg-blue-500 text-white px-3 py-3 rounded-md mr-2 hover:bg-blue-600'>Edit</Button>
+                          <Button className='bg-blue-500 text-white px-3 py-3 rounded-md mr-2 hover:bg-blue-600'>
+                            Edit
+                          </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Confirm Edit</AlertDialogTitle>
                             <AlertDialogDescription>
-                              You are about to edit this property. This will allow you to modify the details. Do you want to proceed?
+                              You are about to edit this property. This will
+                              allow you to modify the details. Do you want to
+                              proceed?
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -167,20 +170,29 @@ const ProfilePage = () => {
                       </AlertDialog>
                       <AlertDialog>
                         <AlertDialogTrigger>
-                          <Button className='bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600'>Delete</Button>
+                          <Button className='bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600'>
+                            Delete
+                          </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              Are you absolutely sure?
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete this property? 
-                              This action cannot be undone and will permanently remove the property 
-                              listing and all associated data from our servers.
+                              Are you sure you want to delete this property?
+                              This action cannot be undone and will permanently
+                              remove the property listing and all associated
+                              data from our servers.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteProperty(property._id)}>Continue</AlertDialogAction>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteProperty(property._id)}
+                            >
+                              Continue
+                            </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>

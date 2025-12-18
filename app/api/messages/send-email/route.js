@@ -7,7 +7,15 @@ export const POST = async (req) => {
   try {
     await connectDB();
 
-    const { owner_email, owner_property_name, owner_name, name, email, phone, message } = await req.json();
+    const {
+      owner_email,
+      owner_property_name,
+      owner_name,
+      name,
+      email,
+      phone,
+      message,
+    } = await req.json();
 
     const msg = {
       to: owner_email,
@@ -27,9 +35,14 @@ export const POST = async (req) => {
 
     await sgMail.send(msg);
 
-    return new Response(JSON.stringify({ message: 'Message sent successfully' }), { status: 200 });
+    return new Response(
+      JSON.stringify({ message: 'Message sent successfully' }),
+      { status: 200 }
+    );
   } catch (error) {
     console.log('SendGrid error:', error.response.body.errors);
-    return new Response(JSON.stringify({ error: 'Failed to send message' }), { status: 500 });
+    return new Response(JSON.stringify({ error: 'Failed to send message' }), {
+      status: 500,
+    });
   }
 };

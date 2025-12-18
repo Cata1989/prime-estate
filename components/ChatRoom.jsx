@@ -76,33 +76,33 @@ export default function ChatRoom({ conversationId, initialMessages }) {
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[70vh] border rounded p-3">
-      <div className="flex-1 overflow-y-auto space-y-2 mb-3">
+    <div className='flex flex-col h-full max-h-[70vh] border rounded p-3'>
+      <div className='flex-1 overflow-y-auto space-y-2 mb-3'>
         {messages.map((m) => (
-            <div key={m._id} className="text-sm">
-              <div className="flex items-baseline gap-2">
-                <span className="font-semibold">{m.senderName}</span>
-                <span className="text-[11px] text-gray-500">
-                  {formatTimestamp(m.createdAt)}
-                </span>
-              </div>
-              <div>{m.text}</div>
+          <div key={m._id} className='text-sm'>
+            <div className='flex items-baseline gap-2'>
+              <span className='font-semibold'>{m.senderName}</span>
+              <span className='text-[11px] text-gray-500'>
+                {formatTimestamp(m.createdAt)}
+              </span>
             </div>
-          ))}
-          <div ref={messagesEndRef} />
+            <div>{m.text}</div>
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={sendMessage} className="flex gap-2">
+      <form onSubmit={sendMessage} className='flex gap-2'>
         <input
-          className="flex-1 border rounded px-2 py-1 text-sm"
+          className='flex-1 border rounded px-2 py-1 text-sm'
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Write something..."
+          placeholder='Write something...'
         />
         <button
-          type="submit"
+          type='submit'
           disabled={sending}
-          className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
+          className='px-3 py-1 bg-blue-600 text-white rounded text-sm'
         >
           {sending ? 'Sending...' : 'Send'}
         </button>

@@ -52,8 +52,8 @@ export const POST = async (request) => {
       .filter((image) => image.name !== '');
 
     const accountUser = await User.findById(userId)
-    .select('username email image')
-    .lean();
+      .select('username email image')
+      .lean();
 
     // Create propertyData object for database
     const propertyData = {
@@ -82,12 +82,12 @@ export const POST = async (request) => {
       },
       owner: userId,
       account_info: accountUser
-      ? {
-          username: accountUser.username || '',
-          email: accountUser.email || '',
-          image: accountUser.image || '',
-        }
-      : null,
+        ? {
+            username: accountUser.username || '',
+            email: accountUser.email || '',
+            image: accountUser.image || '',
+          }
+        : null,
     };
 
     // Upload image(s) to Cloudinary

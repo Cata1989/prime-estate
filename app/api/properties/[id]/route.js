@@ -11,7 +11,7 @@ export const GET = async (request, { params }) => {
     const property = await Property.findById(params.id).lean();
 
     if (!property) return new Response('Property Not Found', { status: 404 });
-    
+
     return new Response(JSON.stringify(property), {
       status: 200,
     });
@@ -80,7 +80,7 @@ export const PUT = async (request, { params }) => {
     const existingImages = JSON.parse(existingImagesJson);
 
     const newFiles = formData.getAll('images').filter((f) => f && f.name);
-    
+
     let uploadedImages = [];
     if (newFiles.length > 0) {
       uploadedImages = await Promise.all(
@@ -98,9 +98,9 @@ export const PUT = async (request, { params }) => {
     }
 
     const finalImages = [...existingImages, ...uploadedImages];
-    
+
     const existingProperty = await Property.findById(id);
-    
+
     if (!existingProperty) {
       return new Response('Property does not exist', { status: 404 });
     }
@@ -137,11 +137,9 @@ export const PUT = async (request, { params }) => {
       owner: userId,
     };
 
-    const updatedProperty = await Property.findByIdAndUpdate(
-      id,
-      propertyData,
-      { new: true }
-    );
+    const updatedProperty = await Property.findByIdAndUpdate(id, propertyData, {
+      new: true,
+    });
 
     return new Response(JSON.stringify(updatedProperty), {
       status: 200,

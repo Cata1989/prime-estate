@@ -37,18 +37,13 @@ export default async function ChatPage({ params }) {
   const otherUserId = participants.find((pid) => pid !== currentUserId);
 
   if (otherUserId) {
-    await pusherServer.trigger(
-      `user-${currentUserId}`,
-      'unread-updated',
-      {
-        otherUserId,
-        unreadCount: 0,
-      }
-    );
+    await pusherServer.trigger(`user-${currentUserId}`, 'unread-updated', {
+      otherUserId,
+      unreadCount: 0,
+    });
   }
 
-  const msgs = await ChatMessage
-    .find({ conversationId })
+  const msgs = await ChatMessage.find({ conversationId })
     .sort({ createdAt: 1 })
     .limit(200)
     .populate('sender', 'username')
@@ -64,7 +59,7 @@ export default async function ChatPage({ params }) {
   }));
 
   return (
-    <div className="max-w-2xl mx-auto mt-6">
+    <div className='max-w-2xl mx-auto mt-6'>
       <ChatRoom
         conversationId={conversationId}
         initialMessages={initialMessages}

@@ -11,15 +11,21 @@ export const dynamic = 'force-dynamic';
 export const POST = async (req) => {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return new Response('Neautorizat', { status: 401 });
+    if (!session?.user?.id)
+      return new Response('Unauthorized', { status: 401 });
 
     const { otherUserId } = await req.json();
 
     if (!otherUserId || !mongoose.Types.ObjectId.isValid(otherUserId)) {
-      return new Response(JSON.stringify({ error: 'otherUserId invalid' }), { status: 400 });
+      return new Response(JSON.stringify({ error: 'otherUserId invalid' }), {
+        status: 400,
+      });
     }
     if (otherUserId === session.user.id) {
-      return new Response(JSON.stringify({ error: 'Nu poți începe conversație cu tine' }), { status: 400 });
+      return new Response(
+        JSON.stringify({ error: 'Cannot open the conversation with you' }),
+        { status: 400 }
+      );
     }
 
     await connectDB();
@@ -35,8 +41,16 @@ export const POST = async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ conversationId: conv._id.toString() }), { status: 200 });
+    return new Response(
+      JSON.stringify({ conversationId: conv._id.toString() }),
+      { status: 200 }
+    );
   } catch {
-    return new Response(JSON.stringify({ error: 'Eroare start conversatie' }), { status: 500 });
+    return new Response(
+      JSON.stringify({ error: 'Eroare to open conversation' }),
+      {
+        status: 500,
+      }
+    );
   }
 };

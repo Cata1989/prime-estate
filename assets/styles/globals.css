@@ -7,10 +7,10 @@
   font-family: 'Poppins', sans-serif;
 }
 [data-sonner-toast] [data-title] {
-    font-weight: 700 !important;
+  font-weight: 700 !important;
 }
 [data-sonner-toast] [data-description] {
-    font-weight: 400 !important;
+  font-weight: 400 !important;
 }
 
 @layer base {

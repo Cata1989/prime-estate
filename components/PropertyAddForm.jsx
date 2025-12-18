@@ -61,14 +61,14 @@ const PropertyAddForm = () => {
 
   // const handleChange2 = (e) => {
   //   const { name, value } = e.target;
-  
+
   //   // Descompune calea nested într-un array (ex: "address.city.street" -> ["address", "city", "street"])
   //   const keys = name.split('.');
-  
+
   //   setFields((prevFields) => {
   //     // Creează o copie a stării curente
   //     const updatedFields = { ...prevFields };
-  
+
   //     // Parcurge cheile până la ultima (ex: "address" -> "city")
   //     let current = updatedFields;
   //     for (let i = 0; i < keys.length - 1; i++) {
@@ -79,10 +79,10 @@ const PropertyAddForm = () => {
   //       }
   //       current = current[key];
   //     }
-  
+
   //     // Actualizează valoarea ultimei chei (ex: "street")
   //     current[keys[keys.length - 1]] = value;
-  
+
   //     return updatedFields;
   //   });
   // };
