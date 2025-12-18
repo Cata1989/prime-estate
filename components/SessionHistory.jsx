@@ -15,6 +15,7 @@ export default function SessionHistory() {
   const { data: session, update } = useSession();
   const [logs, setLogs] = useState([]);
   const sentRef = useRef(false);
+  const tableContainerRef = useRef(null);
 
   useEffect(() => {
     let aborted = false;
@@ -34,10 +35,22 @@ export default function SessionHistory() {
       if (!aborted) setLogs(Array.isArray(data) ? data : []);
     };
     run();
+
     return () => {
       aborted = true;
     };
   }, [session?.user?.id, session?.customUA, update]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
+
+    if (tableContainerRef.current) {
+      const el = tableContainerRef.current;
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [logs.length]);
 
   const handleLogout = async () => {
     try {
@@ -48,7 +61,7 @@ export default function SessionHistory() {
   };
 
   return (
-    <div className='mt-8'>
+    <div ref={tableContainerRef} className='mt-8 max-h-64 overflow-y-auto'>
       <Table>
         <TableCaption>A list of your recent login sessions.</TableCaption>
         <TableHeader>
