@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import StartChatButton from '@/components/StartChatButton';
 import { getPusherClient } from '@/lib/pusherClient';
+import profileDefault from '@/assets/images/profile.png';
+import Image from 'next/image';
 
 export default function UsersListWithChat({ currentUserId }) {
   const [users, setUsers] = useState([]);
@@ -95,12 +97,21 @@ export default function UsersListWithChat({ currentUserId }) {
             className='flex items-center justify-between border rounded px-3 py-2 bg-white'
           >
             <div className='flex items-center gap-2'>
-              <span
-                className={`inline-block h-3 w-3 rounded-full ${
-                  u.online ? 'bg-green-500' : 'bg-gray-400'
-                }`}
-                title={u.online ? 'Online' : 'Offline'}
-              />
+              <div className='relative'>
+                <Image
+                  className='h-[56px] w-[56px] rounded-full mx-auto md:mx-0'
+                  src={u.image || profileDefault}
+                  width={200}
+                  height={200}
+                  alt='User'
+                />
+                <span
+                  className={`absolute inline-block h-3 w-3 rounded-full bottom-1 right-1 ransform translate-x-[20%] translate-y-[20%] ${
+                    u.online ? 'bg-[#24832C]' : 'bg-gray-400'
+                  }`}
+                  title={u.online ? 'Online' : 'Offline'}
+                />
+              </div>
               <div>
                 <div className='font-medium'>{u.username || u.email}</div>
                 <div className='text-xs text-gray-500'>

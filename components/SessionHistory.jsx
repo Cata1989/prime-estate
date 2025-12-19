@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { ArrowLeftStartOnRectangleIcon } from '@heroicons/react/24/outline';
 
 export default function SessionHistory() {
   const { data: session, update } = useSession();
@@ -66,7 +67,7 @@ export default function SessionHistory() {
         <TableCaption>A list of your recent login sessions.</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead className='w-[100px]'>Login</TableHead>
+            <TableHead>Login</TableHead>
             <TableHead>Logout</TableHead>
             <TableHead>Duration</TableHead>
             <TableHead className='text-right'>Browser</TableHead>
@@ -107,9 +108,13 @@ export default function SessionHistory() {
       </Table>
       <button
         onClick={handleLogout}
-        className='mt-4 px-3 py-2 bg-blue-600 text-white rounded text-sm'
+        className='flex mt-4 px-3 py-2 bg-blue-600 text-white rounded text-sm'
       >
-        Logout
+        <ArrowLeftStartOnRectangleIcon
+          aria-hidden='true'
+          className='block mr-3 size-6 group-data-[open]:hidden'
+        />
+        <span>Logout</span>
       </button>
     </div>
   );

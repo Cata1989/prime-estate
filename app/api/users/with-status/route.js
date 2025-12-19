@@ -20,7 +20,7 @@ export const GET = async () => {
 
     await connectDB();
 
-    const users = await User.find({}, { username: 1, email: 1 })
+    const users = await User.find({}, { username: 1, email: 1, image: 1 })
       .sort({ username: 1 })
       .lean();
 
@@ -92,6 +92,7 @@ export const GET = async () => {
         _id: u._id,
         username: u.username,
         email: u.email,
+        image: u.image,
         online,
         sessions: log?.sessions || [],
         unreadCount: unreadMap.get(id) || 0,
