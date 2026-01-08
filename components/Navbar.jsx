@@ -9,6 +9,7 @@ import {
   MenuItems,
 } from '@headlessui/react';
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -126,45 +127,54 @@ const Navbar = () => {
 
                     {/* Profile dropdown */}
                     <Menu as='div' className='relative ml-3'>
-                      <MenuButton className='relative flex max-w-xs items-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'>
-                        <span className='absolute -inset-1.5' />
-                        <span className='sr-only'>Open user menu</span>
-                        <Image
-                          className='size-8 rounded-full outline -outline-offset-1 outline-white/10'
-                          src={profileImage || profileDefault}
-                          alt=''
-                          width={40}
-                          height={40}
-                        />
-                      </MenuButton>
+                      {({open}) => (
+                        <>
+                          <MenuButton className='relative flex max-w-xs items-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'>
+                            <span className='absolute -inset-1.5' />
+                            <span className='sr-only'>Open user menu</span>
+                            <Image
+                              className='size-8 rounded-full outline -outline-offset-1 outline-white/10'
+                              src={profileImage || profileDefault}
+                              alt=''
+                              width={40}
+                              height={40}
+                            />
+                            {open ? ( 
+                              <ChevronUpIcon className='absolute inline-block h-3 w-3 bg-[#E2E5E9] rounded-full bottom-1 right-1 transform translate-x-[50%] translate-y-[50%]' aria-hidden='true' /> 
+                            ) : (
+                              <ChevronDownIcon className='absolute inline-block h-3 w-3 bg-[#E2E5E9] rounded-full bottom-1 right-1 transform translate-x-[50%] translate-y-[50%]' aria-hidden='true' />
+                            )}
+                          </MenuButton>
 
-                      <MenuItems
-                        transition
-                        className='absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg outline-1 outline-black/5 transition data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[enter]:ease-out data-[leave]:duration-75 data-[leave]:ease-in'
-                      >
-                        {userNavigation.map((item) =>
-                          item.type === 'action' ? (
-                            <MenuItem key={item.name}>
-                              <button
-                                onClick={handleLogout}
-                                className='block w-full text-left px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-hidden'
-                              >
-                                {item.name}
-                              </button>
-                            </MenuItem>
-                          ) : (
-                            <MenuItem key={item.name}>
-                              <Link
-                                key={item.name}
-                                href={item.href}
-                                className='block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-hidden'
-                              >
-                                {item.name}
-                              </Link>
-                            </MenuItem>
-                          )
-                        )}
-                      </MenuItems>
+                          <MenuItems
+                            transition
+                            className='absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg outline-1 outline-black/5 transition data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[enter]:ease-out data-[leave]:duration-75 data-[leave]:ease-in'
+                          >
+                            {userNavigation.map((item) =>
+                              item.type === 'action' ? (
+                                <MenuItem key={item.name}>
+                                  <button
+                                    onClick={handleLogout}
+                                    className='block w-full text-left px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-hidden'
+                                  >
+                                    {item.name}
+                                  </button>
+                                </MenuItem>
+                              ) : (
+                                <MenuItem key={item.name}>
+                                  <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    className='block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-hidden'
+                                  >
+                                    {item.name}
+                                  </Link>
+                                </MenuItem>
+                              )
+                            )}
+                          </MenuItems>
+                        </>
+                      )}
                     </Menu>
                   </div>
                 </div>

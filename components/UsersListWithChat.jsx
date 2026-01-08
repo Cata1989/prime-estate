@@ -106,7 +106,7 @@ export default function UsersListWithChat({ currentUserId }) {
                   alt='User'
                 />
                 <span
-                  className={`absolute inline-block h-3 w-3 rounded-full bottom-1 right-1 ransform translate-x-[20%] translate-y-[20%] ${
+                  className={`absolute inline-block h-3 w-3 rounded-full bottom-1 right-1 transform translate-x-[20%] translate-y-[20%] ${
                     u.online ? 'bg-[#24832C]' : 'bg-gray-400'
                   }`}
                   title={u.online ? 'Online' : 'Offline'}
