@@ -39,6 +39,11 @@ const Properties = () => {
     setPage(newPage);
   };
 
+  const handlePageSizeChange = (newPageSize) => { 
+    setPageSize(newPageSize);
+    setPage(1);
+  }
+
   return loading ? (
     <Spinner />
   ) : (
@@ -58,6 +63,7 @@ const Properties = () => {
           pageSize={pageSize}
           totalItems={totalItems}
           onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
         />
       </div>
     </section>
