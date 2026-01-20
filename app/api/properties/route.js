@@ -9,8 +9,11 @@ export const GET = async (request) => {
   try {
     await connectDB();
 
-    const page = request.nextUrl.searchParams.get('page') || 1;
-    const pageSize = request.nextUrl.searchParams.get('pageSize') || 6;
+    const pageParam = request.nextUrl.searchParams.get('page') || '1';
+    const pageSizeParam = request.nextUrl.searchParams.get('pageSize') || '6';
+
+    const page = parseInt(pageParam, 10);
+    const pageSize = parseInt(pageSizeParam, 10);
 
     const skip = (page - 1) * pageSize;
 
@@ -125,9 +128,6 @@ export const POST = async (request) => {
       `${process.env.NEXTAUTH_URL}/properties/${newProperty._id}`
     );
 
-    // return new Response(JSON.stringify({ message: 'Success' }), {
-    //   status: 200,
-    // });
   } catch (error) {
     return new Response('Failed to add property', { status: 500 });
   }

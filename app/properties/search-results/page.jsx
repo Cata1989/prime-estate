@@ -1,42 +1,37 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FaArrowAltCircleLeft } from 'react-icons/fa';
 import PropertyCard from '@/components/PropertyCard';
-import Spinner from '@/components/Spinner';
 import PropertySearchForm from '@/components/PropertySearchForm';
+import InfiniteScroll from '@/components/InfiniteScroll';
 
-const SearchResultsPage = () => {
-  const searchParams = useSearchParams();
+const SearchResultsPage = ({ searchParams }) => {
+  const { location='', propertyType='All' } = searchParams;
 
-  const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const location = searchParams.get('location');
-  const propertyType = searchParams.get('propertyType');
+  const [pageSize, setPageSize] = useState(3);
 
   useEffect(() => {
-    const fetchSearchResults = async () => {
-      try {
-        const res = await fetch(
-          `/api/properties/search?location=${location}&propertyType=${propertyType}`
-        );
+    const updatePageSize = () => {
+      if (window.innerWidth < 768) {
+        setPageSize(1);
+    } else {
+      setPageSize(3);
+    }
+  }
+  updatePageSize();
+  window.addEventListener('resize', updatePageSize);
 
-        if (res.status === 200) {
-          const data = await res.json();
-          setProperties(data);
-        } else {
-          setProperties([]);
-        }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  return () => window.removeEventListener('resize', updatePageSize);
+  }, []);
 
-    fetchSearchResults();
+
+  const fetchSearchResults = useCallback(async (page, pageSize) => {
+    const res = await fetch(
+      `/api/properties/search?location=${location}&propertyType=${propertyType}&page=${page}&pageSize=${pageSize}`
+    );
+    const data = await res.json();
+    return { items: data.properties, total: data.total };
   }, [location, propertyType]);
 
   return (
@@ -46,30 +41,25 @@ const SearchResultsPage = () => {
           <PropertySearchForm />
         </div>
       </section>
-      {loading ? (
-        <Spinner loading={loading} />
-      ) : (
-        <section className='px-4 py-6'>
-          <div className='container-xl lg:container m-auto px-4 py-6'>
-            <Link
-              href='/properties'
-              className='flex items-center text-blue-500 hover:underline mb-3'
-            >
-              <FaArrowAltCircleLeft className='mr-2 mb-1' /> Back To Properties
-            </Link>
-            <h1 className='text-2xl mb-4'>Search Results</h1>
-            {properties.length === 0 ? (
-              <p>No search results found</p>
-            ) : (
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-                {properties.map((property) => (
-                  <PropertyCard key={property._id} property={property} />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+
+      <section className='px-4 py-6'>
+        <div className='container-xl lg:container m-auto px-4 py-6'>
+          <Link href='/properties' className='flex items-center text-blue-500 hover:underline mb-3'>
+            <FaArrowAltCircleLeft className='mr-2 mb-1' /> Back To Properties
+          </Link>
+          
+          <h1 className='text-2xl mb-4 text-gray-800 font-bold'>Search Results</h1>
+
+          <InfiniteScroll
+            key={`${location}-${propertyType}`} 
+            fetchAction={fetchSearchResults}
+            renderItem={(property) => <PropertyCard property={property} />}
+            pageSize={pageSize}
+            gridClass="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            itemName="properties"
+          />
+        </div>
+      </section>
     </>
   );
 };

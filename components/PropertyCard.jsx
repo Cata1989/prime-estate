@@ -1,3 +1,4 @@
+import React, { forwardRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -8,7 +9,7 @@ import {
   FaMapMarker,
 } from 'react-icons/fa';
 
-const PropertyCard = ({ property }) => {
+const PropertyCard = forwardRef(({ property }, ref) => {
   const getRateDisplay = () => {
     const { rates } = property;
 
@@ -22,7 +23,7 @@ const PropertyCard = ({ property }) => {
   };
 
   return (
-    <div className='rounded-xl shadow-md relative'>
+    <div ref={ref} className='rounded-xl shadow-md relative'>
       <Image
         src={property.images[0]}
         alt=''
@@ -96,5 +97,5 @@ const PropertyCard = ({ property }) => {
       </div>
     </div>
   );
-};
+});
 export default PropertyCard;

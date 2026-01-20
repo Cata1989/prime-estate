@@ -10,6 +10,14 @@ export const GET = async (request) => {
     const location = searchParams.get('location');
     const propertyType = searchParams.get('propertyType');
 
+    const pageParam = searchParams.get('page') || '1';
+    const pageSizeParam = searchParams.get('pageSize') || '6';
+
+    const page = parseInt(pageParam, 10);
+    const pageSize = parseInt(pageSizeParam, 10);
+
+    const skip = (page - 1) * pageSize;
+
     const locationPattern = new RegExp(location, 'i');
 
     // Match location pattern against database fields
@@ -31,9 +39,11 @@ export const GET = async (request) => {
       query.type = typePattern;
     }
 
-    const properties = await Property.find(query);
+    const total = await Property.countDocuments(query);
 
-    return new Response(JSON.stringify(properties), {
+    const properties = await Property.find(query).skip(skip).limit(pageSize);
+
+    return new Response(JSON.stringify({total, properties}), {
       status: 200,
     });
   } catch (error) {
