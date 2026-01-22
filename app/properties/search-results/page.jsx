@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import Link from 'next/link';
 import { FaArrowAltCircleLeft } from 'react-icons/fa';
 import PropertyCard from '@/components/PropertyCard';
@@ -8,24 +8,6 @@ import InfiniteScroll from '@/components/InfiniteScroll';
 
 const SearchResultsPage = ({ searchParams }) => {
   const { location='', propertyType='All' } = searchParams;
-
-  const [pageSize, setPageSize] = useState(3);
-
-  useEffect(() => {
-    const updatePageSize = () => {
-      if (window.innerWidth < 768) {
-        setPageSize(1);
-    } else {
-      setPageSize(3);
-    }
-  }
-  updatePageSize();
-  window.addEventListener('resize', updatePageSize);
-
-  return () => window.removeEventListener('resize', updatePageSize);
-  }, []);
-
-
   const fetchSearchResults = useCallback(async (page, pageSize) => {
     const res = await fetch(
       `/api/properties/search?location=${location}&propertyType=${propertyType}&page=${page}&pageSize=${pageSize}`
@@ -54,7 +36,6 @@ const SearchResultsPage = ({ searchParams }) => {
             key={`${location}-${propertyType}`} 
             fetchAction={fetchSearchResults}
             renderItem={(property) => <PropertyCard property={property} />}
-            pageSize={pageSize}
             gridClass="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             itemName="properties"
           />

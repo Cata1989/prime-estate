@@ -6,23 +6,39 @@ import { FaArrowUp } from 'react-icons/fa';
 const InfiniteScroll = ({ 
   fetchAction,      
   renderItem,       
-  pageSize = 6,     
+  pageSize: pageSizeProp = 3,    
   gridClass = '',   
   itemName = 'items' 
 }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(pageSizeProp);
+  const [pageSizeReady, setPageSizeReady] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  
-  const observer = useRef();
 
+  const observer = useRef(null);
+
+  useEffect(() => {
+    const updatePageSize = () => {
+      const newSize = window.innerWidth < 768 ? 1 : pageSizeProp;
+      setPageSize(prev => (prev === newSize ? prev : newSize));
+      setPageSizeReady(true);
+    };
+
+    updatePageSize();
+    window.addEventListener('resize', updatePageSize);
+    return () => window.removeEventListener('resize', updatePageSize);
+  }, [pageSizeProp]);
+  
   const progressPercent = totalItems > 0 ? (items.length / totalItems) * 100 : 0;
 
-  const loadData = useCallback(async (pageNum) => {
-    try {
+  const loadData = useCallback(
+    async (pageNum) => {
+      if (!pageSizeReady) return;
       setLoading(true);
+    try {
       const data = await fetchAction(pageNum, pageSize);
 
       setItems((prev) => {
@@ -46,14 +62,15 @@ const InfiniteScroll = ({
     } finally {
       setLoading(false);
     }
-  }, [fetchAction, pageSize]);
+  }, [fetchAction, pageSize, pageSizeReady]);
 
   useEffect(() => {
+    if (!pageSizeReady) return;
     setItems([]);
     setPage(1);
     setHasMore(true);
     loadData(1);
-  }, [fetchAction, loadData]);
+  }, [fetchAction, loadData, pageSize, pageSizeReady]);
 
   useEffect(() => {
     if (page > 1) {
@@ -72,7 +89,7 @@ const InfiniteScroll = ({
     });
 
     if (node) observer.current.observe(node);
-  }, [loading, hasMore]);
+  }, [loading, hasMore, pageSizeReady]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
